@@ -1,0 +1,111 @@
+@import 'tailwindcss';
+
+@theme {
+  /* Ink, paper, seal. Warm blacks throughout — nothing here is blue-grey. */
+  --color-ink-950: #0a0908;
+  --color-ink-900: #121010;
+  --color-ink-800: #1c1917;
+  --color-ink-700: #2a2624;
+  --color-ink-600: #423c38;
+  --color-ink-400: #7d746d;
+  --color-ink-300: #a89f97;
+
+  --color-paper-50: #faf6ec;
+  --color-paper-100: #f2ecdd;
+  --color-paper-200: #e4dbc7;
+
+  --color-seal-600: #b32d18;
+  --color-seal-500: #d93a22;
+  --color-seal-400: #e86047;
+
+  --font-display: var(--font-display), Georgia, serif;
+  --font-sans: var(--font-sans), ui-sans-serif, system-ui, sans-serif;
+}
+
+:root {
+  color-scheme: dark;
+}
+
+html {
+  scroll-behavior: smooth;
+  -webkit-text-size-adjust: 100%;
+}
+
+body {
+  background-color: var(--color-ink-950);
+  color: var(--color-paper-100);
+  font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+/* Paper grain. One inline SVG, no image request, barely there. */
+.grain::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  z-index: 50;
+  pointer-events: none;
+  opacity: 0.035;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='140' height='140'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3'/%3E%3C/filter%3E%3Crect width='140' height='140' filter='url(%23n)'/%3E%3C/svg%3E");
+}
+
+::selection {
+  background: var(--color-seal-500);
+  color: var(--color-paper-50);
+}
+
+:focus-visible {
+  outline: 2px solid var(--color-seal-400);
+  outline-offset: 3px;
+  border-radius: 2px;
+}
+
+/* Entrances are choreographed, not simultaneous. Each element declares its own
+   delay via --d so a section resolves in reading order. */
+@keyframes rise {
+  from {
+    opacity: 0;
+    transform: translateY(14px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+.rise {
+  animation: rise 0.7s cubic-bezier(0.16, 1, 0.3, 1) both;
+  animation-delay: var(--d, 0ms);
+}
+
+@keyframes draw {
+  from {
+    stroke-dashoffset: var(--len, 400);
+  }
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .rise {
+    animation: none;
+  }
+  html {
+    scroll-behavior: auto;
+  }
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+/* Reader surface: pages butt against each other with no gap in strip mode. */
+.strip img {
+  display: block;
+  width: 100%;
+  height: auto;
+}
