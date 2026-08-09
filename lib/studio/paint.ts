@@ -434,7 +434,7 @@ export function renderPage(spec: PageSpec): string {
 
     body +=
       `<defs><clipPath id="${clip}"><rect x="${px}" y="${py}" width="${pw}" height="${ph}" rx="3"/></clipPath></defs>` +
-      `<g clip-path="url(#${clip}))"><g transform="translate(${px},${py})">${inner}</g></g>`.replace('))', ')') +
+      `<g clip-path="url(#${clip})"><g transform="translate(${px},${py})">${inner}</g></g>` +
       `<rect x="${px}" y="${py}" width="${pw}" height="${ph}" rx="3" fill="none" stroke="${basePal.paper}" stroke-width="3" opacity="0.9"/>`;
   });
 
