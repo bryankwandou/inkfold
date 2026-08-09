@@ -70,6 +70,34 @@ it is enforced in the CSP rather than the copy.
 No exclamation marks. No emoji. No "seamless", "revolutionary", "unleash",
 "empower". Numbers instead of adjectives wherever a number exists.
 
+## The originals house style
+
+Inkfold originals are drawn by `lib/studio/paint.ts` from a scene description.
+That constraint sets the art direction rather than fighting it.
+
+**Flat silhouette.** Figures are single filled paths — head, torso, limbs
+implied by outline. Eight poses (`stand`, `reach`, `crouch`, `suit`, `seated`,
+`float`, `point`, `slump`) carry the whole cast. No faces, because a face drawn
+by a polygon renderer reads as a mistake and a silhouette reads as a choice.
+
+**Depth by stacking, not shading.** A panel is layers back to front: star field,
+a disc, wreckage, a hull slab, then figures against it. Nothing is rendered; the
+sense of space comes from occlusion and scale.
+
+**One palette per chapter, six total.** `void` for open space, `frost` for the
+derelict interior, `bone` for the archive decks, `rust` for the company
+scenes, `ember` for the turn, `deep` for the reckoning. Each is five colours
+plus paper. Mood shifts happen by swapping the palette, not by adding elements.
+
+**Balloons carry the register.** Speech is a paper rectangle, thought is a
+capsule, radio is an angled black box with a glow edge. Captions are set in
+Georgia italic on a paper band, so narration reads as a different voice from
+dialogue without a single label.
+
+Every value that could be random runs through a seeded PRNG, so a page is
+byte-identical on every request. That is what lets the CDN treat generated art
+as immutable.
+
 ## Motion
 
 Entrances are choreographed in reading order via a `--d` delay custom property

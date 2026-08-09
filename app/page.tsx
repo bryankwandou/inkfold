@@ -163,10 +163,63 @@ export default async function HomePage() {
         </div>
       </section>
 
+      {/* ── Originals ────────────────────────────────────────── */}
+      <section className="mx-auto max-w-6xl px-5 py-24">
+        <div className="grid items-center gap-14 lg:grid-cols-[1.05fr_0.95fr]">
+          <div>
+            <p className="text-[12px] uppercase tracking-[0.16em] text-seal-500">
+              Inkfold originals
+            </p>
+            <h2 className="mt-4 font-display text-[36px] leading-[1.08] tracking-tight text-paper-50 sm:text-[46px]">
+              A shelf of borrowed work is still a borrowed shelf.
+            </h2>
+            <p className="mt-6 text-[16px] leading-relaxed text-ink-300">
+              So we write our own. <em>Nine Tenths</em> is eight chapters of
+              science fiction about salvage law, an archive nobody licensed, and
+              the gap between owning a thing and having made it. Thirty-two
+              pages, scripted as prose and then composed panel by panel in code.
+            </p>
+            <p className="mt-4 text-[16px] leading-relaxed text-ink-300">
+              There is no sourced artwork in it. Every panel is a function of the
+              script and a fixed seed — starfields, hull silhouettes, balloons,
+              the lot — which is why it renders identically on every request and
+              why we can hand it back out under CC BY-SA without a single
+              clearance question.
+            </p>
+            <div className="mt-8 flex flex-wrap gap-3">
+              <Link
+                href="/series/nine-tenths"
+                className="rounded-lg bg-seal-500 px-6 py-3.5 text-[15px] font-medium text-paper-50 transition-colors hover:bg-seal-600"
+              >
+                Read Nine Tenths
+              </Link>
+              <a
+                href="https://github.com/bryankwandou/inkfold/blob/main/lib/studio/paint.ts"
+                target="_blank"
+                rel="noreferrer noopener"
+                className="rounded-lg border border-ink-700 px-6 py-3.5 text-[15px] text-paper-100 transition-colors hover:border-ink-600 hover:bg-ink-900"
+              >
+                Read the renderer
+              </a>
+            </div>
+          </div>
+
+          <div className="overflow-hidden rounded-xl ring-1 ring-ink-700">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              src="/page-art/nine-tenths/ch07/3.svg"
+              alt="A page from Nine Tenths, drawn in code"
+              loading="lazy"
+              className="w-full"
+            />
+          </div>
+        </div>
+      </section>
+
       {/* ── Close ────────────────────────────────────────────── */}
       <section className="mx-auto max-w-3xl px-5 py-28 text-center">
         <h2 className="font-display text-[38px] leading-[1.08] tracking-tight text-paper-50 sm:text-[52px]">
-          Start with the witch who keeps blowing up her own kitchen.
+          Or start with the witch who keeps blowing up her own kitchen.
         </h2>
         <p className="mt-6 text-[16px] leading-relaxed text-ink-300">
           Thirty-nine episodes, translated by volunteers into seventy-two

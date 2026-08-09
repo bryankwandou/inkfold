@@ -1,5 +1,7 @@
 // Inkfold catalog layer.
 //
+import { NINE_TENTHS_CHAPTERS } from '@/content/nine-tenths';
+
 // Rule of the house: nothing enters this file without a license we can point at.
 // Every Series carries a `license` and a `source` that resolve to a real URL a
 // reader can open and check for themselves. If a work cannot satisfy that, it
@@ -28,6 +30,13 @@ export const LICENSES: Record<string, License> = {
     url: 'https://en.wikipedia.org/wiki/Public_domain',
     commercial: true,
   },
+  'cc-by-sa-4.0': {
+    id: 'cc-by-sa-4.0',
+    name: 'Creative Commons Attribution-ShareAlike 4.0 International',
+    short: 'CC BY-SA 4.0',
+    url: 'https://creativecommons.org/licenses/by-sa/4.0/',
+    commercial: true,
+  },
 };
 
 export type Chapter = {
@@ -46,7 +55,7 @@ export type Series = {
   authorNote: string;
   year: string;
   origin: string;
-  kind: 'webcomic' | 'woodblock';
+  kind: 'webcomic' | 'woodblock' | 'original';
   license: License;
   sourceName: string;
   sourceUrl: string;
@@ -181,9 +190,48 @@ export function getHokusaiManga(): Series {
   };
 }
 
+/**
+ * Inkfold originals. Written for this shelf and drawn by lib/studio/paint.ts —
+ * every panel is generated from a scene description at request time, so there
+ * is no sourced artwork anywhere in it. We hold the copyright and we release it
+ * under the same terms we ask of submissions.
+ */
+export function getNineTenths(): Series {
+  const art = (chapter: string, page: number) =>
+    `/page-art/nine-tenths/${chapter}/${page}.svg`;
+
+  const chapters: Chapter[] = NINE_TENTHS_CHAPTERS.map((c) => ({
+    id: c.id,
+    number: c.number,
+    title: c.title,
+    pageCount: c.pages.length,
+    cover: art(c.id, 1),
+    pages: c.pages.map((_, i) => art(c.id, i + 1)),
+  }));
+
+  return {
+    slug: 'nine-tenths',
+    title: 'Nine Tenths',
+    author: 'Inkfold Studio',
+    authorNote:
+      'Scripted as prose, then composed panel by panel in code. The figures are silhouettes because a machine drawing polygons should play to that instead of faking a hand it does not have.',
+    year: '2026',
+    origin: 'Original',
+    kind: 'original',
+    license: LICENSES['cc-by-sa-4.0'],
+    sourceName: 'github.com/bryankwandou/inkfold',
+    sourceUrl: 'https://github.com/bryankwandou/inkfold/blob/main/content/nine-tenths.ts',
+    synopsis:
+      'Past Ceres, a hull adrift four hundred days belongs to whoever tows it home. Captain Mara Okonkwo tags the Auroria expecting scrap and finds a woman in cold storage, thirty years of her work on nine hundred drives, and a company man with a filing window. The law is not wrong. That turns out to be the problem.',
+    tags: ['Science fiction', 'Drama', 'Mature themes', 'Drawn in code'],
+    cover: '/page-art/nine-tenths/cover/1.svg',
+    chapters,
+  };
+}
+
 export async function getCatalog(lang = 'en'): Promise<Series[]> {
   const [pepper] = await Promise.all([getPepperCarrot(lang)]);
-  return [pepper, getHokusaiManga()];
+  return [getNineTenths(), pepper, getHokusaiManga()];
 }
 
 export async function getSeries(

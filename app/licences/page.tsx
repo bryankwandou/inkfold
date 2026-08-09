@@ -66,6 +66,20 @@ export default async function LicencesPage() {
         ))}
       </ol>
 
+      <div className="mt-16 rounded-2xl border border-seal-600/35 bg-seal-600/8 p-8">
+        <h2 className="font-display text-[24px] text-paper-50">
+          The fifth route: write it ourselves
+        </h2>
+        <p className="mt-3 text-[15px] leading-relaxed text-ink-300">
+          Clearance is slow, and a library that only ever borrows is at the mercy
+          of what other people happen to release. So one title on the shelf is
+          ours outright. <em>Nine Tenths</em> is scripted and then drawn by a
+          renderer we wrote — no sourced artwork anywhere in it, which means the
+          clearance question never arises. We put it out under CC BY-SA 4.0,
+          the same terms we ask of anyone submitting to us.
+        </p>
+      </div>
+
       <h2 className="mt-20 font-display text-[32px] text-paper-50">
         What we currently host
       </h2>
