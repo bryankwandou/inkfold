@@ -1,0 +1,16 @@
+{
+  "compilerOptions": {
+    "target": "ES2020",
+    "module": "CommonJS",
+    "moduleResolution": "node",
+    "lib": ["ES2021", "DOM"],
+    "strict": true,
+    "skipLibCheck": true,
+    "outDir": "../.render-check",
+    "rootDir": "..",
+    "baseUrl": "..",
+    "paths": { "@/*": ["./*"] },
+    "esModuleInterop": true
+  },
+  "include": ["render-check.ts", "../lib/studio/**/*.ts", "../content/**/*.ts"]
+}

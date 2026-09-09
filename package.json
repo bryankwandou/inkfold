@@ -6,7 +6,8 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "next lint"
+    "lint": "next lint",
+    "check:art": "tsc -p scripts/tsconfig.json && node .render-check/scripts/render-check.js"
   },
   "dependencies": {
     "next": "15.5.23",

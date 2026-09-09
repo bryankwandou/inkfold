@@ -19,7 +19,17 @@ export function rng(seed: number) {
   };
 }
 
-export type PaletteName = 'void' | 'rust' | 'ember' | 'frost' | 'bone' | 'deep';
+export type PaletteName =
+  | 'void'
+  | 'rust'
+  | 'ember'
+  | 'frost'
+  | 'bone'
+  | 'deep'
+  | 'neon'
+  | 'slate'
+  | 'moss'
+  | 'dusk';
 
 type Palette = {
   far: string;
@@ -37,6 +47,11 @@ export const PALETTES: Record<PaletteName, Palette> = {
   frost: { far: '#0a1116', near: '#162b36', ink: '#030809', accent: '#4fb8c9', glow: '#b8e8f0', paper: '#e4eef2' },
   bone: { far: '#1b1a17', near: '#33302a', ink: '#0b0a09', accent: '#c9a227', glow: '#e8d9a0', paper: '#f2ece0' },
   deep: { far: '#04060e', near: '#0a1020', ink: '#010208', accent: '#6c5ce7', glow: '#9bb7ff', paper: '#e6e8f2' },
+  // Terrestrial set — added for Paper Streets, which happens at street level.
+  neon: { far: '#0d0714', near: '#241338', ink: '#050208', accent: '#ff3d7f', glow: '#63e7ff', paper: '#efe8f4' },
+  slate: { far: '#14171b', near: '#282e36', ink: '#07090b', accent: '#e05a3a', glow: '#9fb4c4', paper: '#eef1f4' },
+  moss: { far: '#101610', near: '#1f2c1e', ink: '#050805', accent: '#d0b24a', glow: '#8fc08a', paper: '#eef0e4' },
+  dusk: { far: '#1a1220', near: '#33203a', ink: '#0a0610', accent: '#ef7a4b', glow: '#ffc9a0', paper: '#f4e9e4' },
 };
 
 /* ── Layer vocabulary ─────────────────────────────────────────────── */
@@ -56,9 +71,37 @@ export type Layer =
   | { t: 'wash'; from?: number; to?: number; color?: 'accent' | 'glow' | 'ink' }
   | { t: 'dust'; n?: number; seed?: number }
   | { t: 'beam'; x?: number; w?: number }
-  | { t: 'horizon'; y?: number };
+  | { t: 'horizon'; y?: number }
+  /* Street level. */
+  | { t: 'city'; y?: number; density?: number; seed?: number; lit?: boolean }
+  | { t: 'rain'; n?: number; slant?: number; seed?: number }
+  | { t: 'room'; window?: boolean; y?: number }
+  | { t: 'door'; x?: number; open?: boolean }
+  | { t: 'stairs'; n?: number; flip?: boolean }
+  | { t: 'crowd'; n?: number; y?: number; seed?: number }
+  | { t: 'desk'; y?: number; clutter?: number; seed?: number }
+  | { t: 'road'; vy?: number; lanes?: number }
+  | { t: 'sign'; x?: number; y?: number; text?: string }
+  | { t: 'trees'; y?: number; n?: number; seed?: number }
+  | { t: 'screen'; x?: number; y?: number; w?: number; lines?: number; seed?: number }
+  | { t: 'map'; seed?: number; mark?: [number, number] }
+  | { t: 'blinds'; n?: number };
 
-export type Pose = 'stand' | 'reach' | 'crouch' | 'suit' | 'seated' | 'float' | 'point' | 'slump';
+export type Pose =
+  | 'stand'
+  | 'reach'
+  | 'crouch'
+  | 'suit'
+  | 'seated'
+  | 'float'
+  | 'point'
+  | 'slump'
+  | 'walk'
+  | 'run'
+  | 'carry'
+  | 'lean'
+  | 'kneel'
+  | 'umbrella';
 
 export type Balloon = {
   x: number; // 0..1 within panel
@@ -303,6 +346,236 @@ function paintLayer(l: Layer, p: Palette, w: number, h: number, seed: number): s
       return `<linearGradient id="${id}" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="${p.glow}" stop-opacity="0.55"/><stop offset="1" stop-color="${p.glow}" stop-opacity="0"/></linearGradient><path d="M${x - bw * 0.25} 0 L${x + bw * 0.25} 0 L${x + bw} ${h} L${x - bw} ${h} Z" fill="url(#${id})"/>`;
     }
 
+    case 'city': {
+      // Skyline as stacked blocks. Windows go in on a coarse grid so the
+      // towers read as occupied rather than as bar charts.
+      const rr = rng(l.seed ?? seed);
+      const base = (l.y ?? 0.68) * h;
+      const density = l.density ?? 1;
+      let out = '';
+      // Two ranks: a hazier one behind, the solid one in front.
+      for (const rank of [0, 1]) {
+        const shade = rank === 0 ? p.near : p.ink;
+        const off = rank === 0 ? -h * 0.06 : 0;
+        let x = -30;
+        while (x < w + 30) {
+          const bw = (34 + rr() * 96) / density;
+          const bh = (0.12 + rr() * 0.46) * h * (rank === 0 ? 0.8 : 1);
+          const top = base + off - bh;
+          out += `<rect x="${x.toFixed(0)}" y="${top.toFixed(0)}" width="${bw.toFixed(0)}" height="${(bh + h).toFixed(0)}" fill="${shade}"/>`;
+          if (rank === 1 && l.lit !== false) {
+            for (let wy = top + 14; wy < base - 14; wy += 22) {
+              for (let wx = x + 8; wx < x + bw - 10; wx += 16) {
+                if (rr() > 0.62) {
+                  const warm = rr() > 0.3;
+                  out += `<rect x="${wx.toFixed(0)}" y="${wy.toFixed(0)}" width="7" height="10" fill="${warm ? p.glow : p.accent}" opacity="${(0.35 + rr() * 0.5).toFixed(2)}"/>`;
+                }
+              }
+            }
+          }
+          x += bw + 4;
+        }
+      }
+      return out;
+    }
+
+    case 'rain': {
+      const rr = rng(l.seed ?? seed + 11);
+      const slant = l.slant ?? 0.22;
+      let out = '';
+      for (let i = 0; i < (l.n ?? 120); i++) {
+        const x = rr() * (w + h * slant) - h * slant;
+        const y = rr() * h;
+        const len = 26 + rr() * 58;
+        out += `<line x1="${x.toFixed(1)}" y1="${y.toFixed(1)}" x2="${(x + len * slant).toFixed(1)}" y2="${(y + len).toFixed(1)}" stroke="${p.paper}" stroke-width="${rr() > 0.8 ? 1.8 : 1}" opacity="${(0.12 + rr() * 0.3).toFixed(2)}"/>`;
+      }
+      return out;
+    }
+
+    case 'room': {
+      // Interior: back wall, floor line, optional window throwing a light patch.
+      const fy = (l.y ?? 0.74) * h;
+      let out = `<rect width="${w}" height="${fy}" fill="${p.near}"/><rect y="${fy}" width="${w}" height="${h - fy}" fill="${p.ink}"/>`;
+      out += `<rect y="${fy - 10}" width="${w}" height="10" fill="${p.ink}" opacity="0.7"/>`;
+      if (l.window !== false) {
+        const wx = w * 0.58;
+        const wy = fy - h * 0.42;
+        const ww = w * 0.3;
+        const wh = h * 0.3;
+        out += `<rect x="${wx}" y="${wy}" width="${ww}" height="${wh}" fill="${p.glow}" opacity="0.3"/>`;
+        out += `<rect x="${wx}" y="${wy}" width="${ww}" height="${wh}" fill="none" stroke="${p.ink}" stroke-width="6"/>`;
+        out += `<line x1="${wx + ww / 2}" y1="${wy}" x2="${wx + ww / 2}" y2="${wy + wh}" stroke="${p.ink}" stroke-width="5"/>`;
+        // Light falling on the floor, sheared toward the viewer.
+        out += `<path d="M${wx} ${fy} L${wx + ww} ${fy} L${wx + ww * 1.5} ${h} L${wx - ww * 0.35} ${h} Z" fill="${p.glow}" opacity="0.14"/>`;
+      }
+      return out;
+    }
+
+    case 'door': {
+      const dx = (l.x ?? 0.5) * w;
+      const dw = w * 0.22;
+      const dh = h * 0.46;
+      const dy = h * 0.72 - dh;
+      let out = `<rect x="${dx - dw / 2}" y="${dy}" width="${dw}" height="${dh}" fill="${p.ink}"/>`;
+      if (l.open) {
+        out =
+          `<rect x="${dx - dw / 2}" y="${dy}" width="${dw}" height="${dh}" fill="${p.glow}" opacity="0.55"/>` +
+          `<path d="M${dx - dw / 2} ${dy + dh} L${dx + dw / 2} ${dy + dh} L${dx + dw} ${h} L${dx - dw} ${h} Z" fill="${p.glow}" opacity="0.18"/>` +
+          `<rect x="${dx - dw / 2 - 9}" y="${dy - 9}" width="${dw + 18}" height="${dh + 9}" fill="none" stroke="${p.ink}" stroke-width="9"/>`;
+      } else {
+        out += `<circle cx="${dx + dw * 0.32}" cy="${dy + dh * 0.55}" r="5" fill="${p.glow}" opacity="0.8"/>`;
+        out += `<rect x="${dx - dw / 2 - 9}" y="${dy - 9}" width="${dw + 18}" height="${dh + 9}" fill="none" stroke="${p.near}" stroke-width="9"/>`;
+      }
+      return out;
+    }
+
+    case 'stairs': {
+      const n = l.n ?? 9;
+      const stepW = w / (n + 2);
+      const stepH = h / (n + 3);
+      let out = '';
+      for (let i = 0; i < n; i++) {
+        const x = i * stepW;
+        const y = h - (i + 1) * stepH;
+        out += `<rect x="${x.toFixed(0)}" y="${y.toFixed(0)}" width="${(w - x).toFixed(0)}" height="${(stepH + 2).toFixed(0)}" fill="${p.ink}" opacity="${(0.55 + (i / n) * 0.45).toFixed(2)}"/>`;
+      }
+      const g = l.flip ? `transform="translate(${w},0) scale(-1,1)"` : '';
+      return `<g ${g}>${out}</g>`;
+    }
+
+    case 'crowd': {
+      // A rank of small bodies. Anonymous by design — nobody here has a name.
+      const rr = rng(l.seed ?? seed + 5);
+      const n = l.n ?? 14;
+      const base = (l.y ?? 0.86) * h;
+      let out = '';
+      for (let i = 0; i < n; i++) {
+        const x = rr() * w;
+        const sc = 0.5 + rr() * 0.35;
+        const bh = h * 0.3 * sc;
+        const bw = bh * 0.26;
+        out += `<g transform="translate(${x.toFixed(0)},${(base + rr() * 20).toFixed(0)})"><circle cx="0" cy="${(-bh).toFixed(0)}" r="${(bw * 0.44).toFixed(1)}" fill="${p.ink}"/><path d="M${-bw / 2} ${-bh * 0.82} q${bw / 2} ${-bh * 0.12} ${bw} 0 l${bw * 0.12} ${bh * 0.86} l${-bw * 1.24} 0 Z" fill="${p.ink}"/></g>`;
+      }
+      return out;
+    }
+
+    case 'desk': {
+      // Foreground table edge with paperwork. The clerk's whole world.
+      const y = (l.y ?? 0.7) * h;
+      const rr = rng(l.seed ?? seed + 13);
+      let out = '';
+      for (let i = 0; i < (l.clutter ?? 6); i++) {
+        const sw = w * (0.1 + rr() * 0.16);
+        const sx = w * 0.06 + rr() * (w * 0.8);
+        const sy = y - 6 - rr() * 26;
+        out += `<g transform="translate(${sx.toFixed(0)},${sy.toFixed(0)}) rotate(${(rr() * 16 - 8).toFixed(1)})"><rect width="${sw.toFixed(0)}" height="${(sw * 0.72).toFixed(0)}" y="${(-sw * 0.72).toFixed(0)}" fill="${p.paper}" opacity="0.9"/></g>`;
+      }
+      out += `<rect x="0" y="${y}" width="${w}" height="${h - y}" fill="${p.ink}"/>`;
+      out += `<rect x="0" y="${y}" width="${w}" height="7" fill="${p.glow}" opacity="0.3"/>`;
+      return out;
+    }
+
+    case 'road': {
+      const vy = (l.vy ?? 0.42) * h;
+      const vx = w / 2;
+      let out = `<rect y="${vy}" width="${w}" height="${h - vy}" fill="${p.near}"/>`;
+      out += `<path d="M${vx - 26} ${vy} L${vx + 26} ${vy} L${w * 1.3} ${h} L${-w * 0.3} ${h} Z" fill="${p.ink}"/>`;
+      const lanes = l.lanes ?? 5;
+      for (let i = 0; i < lanes; i++) {
+        const t0 = (i + 0.15) / lanes;
+        const t1 = (i + 0.6) / lanes;
+        const at = (t: number) => {
+          const tt = t * t; // perspective foreshortening
+          return [vx + (vx - vx) * tt, vy + (h - vy) * tt, 4 + tt * 22];
+        };
+        const [, y0, w0] = at(t0);
+        const [, y1, w1] = at(t1);
+        out += `<path d="M${vx - w0 / 2} ${y0} L${vx + w0 / 2} ${y0} L${vx + w1 / 2} ${y1} L${vx - w1 / 2} ${y1} Z" fill="${p.paper}" opacity="0.5"/>`;
+      }
+      return out;
+    }
+
+    case 'sign': {
+      const sx = (l.x ?? 0.5) * w;
+      const sy = (l.y ?? 0.3) * h;
+      const txt = (l.text ?? '').toUpperCase();
+      const fs = Math.max(15, w * 0.05);
+      const bw = Math.max(fs * 3, txt.length * fs * 0.62 + fs);
+      const bh = fs * 1.8;
+      return (
+        `<rect x="${(sx - bw / 2).toFixed(0)}" y="${(sy - bh / 2).toFixed(0)}" width="${bw.toFixed(0)}" height="${bh.toFixed(0)}" rx="4" fill="${p.ink}" stroke="${p.accent}" stroke-width="3"/>` +
+        `<text x="${sx.toFixed(0)}" y="${(sy + fs * 0.36).toFixed(0)}" font-family="ui-sans-serif, system-ui, sans-serif" font-size="${fs.toFixed(0)}" font-weight="700" letter-spacing="${(fs * 0.08).toFixed(1)}" fill="${p.accent}" text-anchor="middle">${esc(txt)}</text>`
+      );
+    }
+
+    case 'trees': {
+      const rr = rng(l.seed ?? seed + 17);
+      const base = (l.y ?? 0.78) * h;
+      let out = '';
+      for (let i = 0; i < (l.n ?? 10); i++) {
+        const x = rr() * w;
+        const th = h * (0.1 + rr() * 0.22);
+        const tw = th * (0.3 + rr() * 0.2);
+        out += `<path d="M${x} ${base} L${x - tw / 2} ${base - th * 0.42} L${x - tw * 0.3} ${base - th * 0.44} L${x - tw * 0.42} ${base - th * 0.76} L${x} ${base - th} L${x + tw * 0.42} ${base - th * 0.76} L${x + tw * 0.3} ${base - th * 0.44} L${x + tw / 2} ${base - th * 0.42} Z" fill="${p.ink}" opacity="0.95"/>`;
+      }
+      out += `<rect y="${base}" width="${w}" height="${h - base}" fill="${p.ink}"/>`;
+      return out;
+    }
+
+    case 'screen': {
+      // A monitor face: glow panel with ragged text rules on it.
+      const rr = rng(l.seed ?? seed + 19);
+      const sw = (l.w ?? 0.46) * w;
+      const sh = sw * 0.66;
+      const sx = (l.x ?? 0.5) * w - sw / 2;
+      const sy = (l.y ?? 0.44) * h - sh / 2;
+      let out = `<rect x="${sx.toFixed(0)}" y="${sy.toFixed(0)}" width="${sw.toFixed(0)}" height="${sh.toFixed(0)}" rx="6" fill="${p.ink}"/>`;
+      out += `<rect x="${(sx + 8).toFixed(0)}" y="${(sy + 8).toFixed(0)}" width="${(sw - 16).toFixed(0)}" height="${(sh - 16).toFixed(0)}" fill="${p.glow}" opacity="0.22"/>`;
+      const rows = l.lines ?? 7;
+      for (let i = 0; i < rows; i++) {
+        const ly = sy + 20 + (i * (sh - 34)) / rows;
+        out += `<rect x="${(sx + 18).toFixed(0)}" y="${ly.toFixed(0)}" width="${((sw - 46) * (0.3 + rr() * 0.66)).toFixed(0)}" height="5" rx="2" fill="${p.glow}" opacity="${(0.4 + rr() * 0.5).toFixed(2)}"/>`;
+      }
+      out += `<path d="M${sx + sw * 0.36} ${sy + sh} L${sx + sw * 0.64} ${sy + sh} L${sx + sw * 0.72} ${sy + sh + 34} L${sx + sw * 0.28} ${sy + sh + 34} Z" fill="${p.ink}"/>`;
+      return out;
+    }
+
+    case 'map': {
+      // A street grid seen flat, with an optional circled block.
+      const rr = rng(l.seed ?? seed + 23);
+      let out = `<rect width="${w}" height="${h}" fill="${p.paper}"/>`;
+      const cols: number[] = [];
+      for (let x = w * 0.06; x < w * 0.96; x += w * (0.08 + rr() * 0.1)) cols.push(x);
+      const rows: number[] = [];
+      for (let y = h * 0.06; y < h * 0.96; y += h * (0.07 + rr() * 0.09)) rows.push(y);
+      for (const x of cols)
+        out += `<line x1="${x.toFixed(0)}" y1="0" x2="${(x + (rr() * 30 - 15)).toFixed(0)}" y2="${h}" stroke="${p.ink}" stroke-width="${rr() > 0.75 ? 5 : 2}" opacity="0.55"/>`;
+      for (const y of rows)
+        out += `<line x1="0" y1="${y.toFixed(0)}" x2="${w}" y2="${(y + (rr() * 24 - 12)).toFixed(0)}" stroke="${p.ink}" stroke-width="${rr() > 0.8 ? 5 : 2}" opacity="0.55"/>`;
+      for (let i = 0; i < 26; i++) {
+        const bx = rr() * w * 0.9;
+        const by = rr() * h * 0.9;
+        out += `<rect x="${bx.toFixed(0)}" y="${by.toFixed(0)}" width="${(10 + rr() * 30).toFixed(0)}" height="${(8 + rr() * 22).toFixed(0)}" fill="${p.ink}" opacity="0.16"/>`;
+      }
+      if (l.mark) {
+        const mx = l.mark[0] * w;
+        const my = l.mark[1] * h;
+        out += `<circle cx="${mx}" cy="${my}" r="${(w * 0.11).toFixed(0)}" fill="none" stroke="${p.accent}" stroke-width="6" opacity="0.95"/>`;
+        out += `<line x1="${mx}" y1="${my + w * 0.11}" x2="${mx + w * 0.18}" y2="${my + w * 0.26}" stroke="${p.accent}" stroke-width="5"/>`;
+      }
+      return out;
+    }
+
+    case 'blinds': {
+      const n = l.n ?? 12;
+      let out = '';
+      for (let i = 0; i < n; i++) {
+        const y = (i / n) * h;
+        out += `<rect x="0" y="${y.toFixed(1)}" width="${w}" height="${(h / n) * 0.52}" fill="${p.ink}" opacity="0.62"/>`;
+      }
+      return out;
+    }
+
     case 'figure':
       return paintFigure(l, p, w, h);
   }
@@ -337,6 +610,18 @@ function paintFigure(l: Extract<Layer, { t: 'figure' }>, p: Palette, w: number, 
       'M0,-330 a46,46 0 1,1 0.1,0 M-52,-262 q52,-30 104,0 l92,26 -8,30 -100,-14 -8,140 -32,0 -6,-88 -10,88 -32,0 -6,-192 Z',
     slump:
       'M-14,-268 a44,44 0 1,1 0.1,0 M-62,-206 q54,-26 106,2 l10,120 -30,6 -8,-70 -6,150 -34,0 -10,-150 -8,70 -28,-6 Z',
+    walk:
+      'M0,-330 a46,46 0 1,1 0.1,0 M-52,-262 q52,-30 104,0 l14,144 -28,10 -8,-88 -2,86 46,102 -28,16 -46,-104 -40,96 -28,-14 44,-104 -6,-84 -8,90 -28,-10 Z',
+    run:
+      'M6,-322 a44,44 0 1,1 0.1,0 M-48,-256 q54,-30 104,2 l64,42 -16,28 -62,-32 -6,64 58,88 -28,20 -62,-92 -54,86 -28,-18 52,-86 -8,-70 -20,64 -28,-10 Z',
+    carry:
+      'M0,-330 a46,46 0 1,1 0.1,0 M-56,-262 q56,-30 112,0 l6,52 44,10 0,30 -50,-6 -6,158 -32,0 -6,-96 -8,96 -32,0 -6,-192 Z',
+    lean:
+      'M22,-322 a44,44 0 1,1 0.1,0 M-30,-256 q52,-28 100,0 l10,132 -28,8 -6,-84 -4,190 -34,0 -12,-188 -46,-2 0,-30 44,0 Z',
+    kneel:
+      'M-4,-244 a44,44 0 1,1 0.1,0 M-54,-182 q54,-28 106,0 l12,96 -28,8 -8,-56 0,90 66,4 0,32 -104,0 -8,-64 -34,58 -28,-16 Z',
+    umbrella:
+      'M0,-320 a44,44 0 1,1 0.1,0 M-50,-254 q50,-28 100,0 l12,140 -28,8 -6,-86 -6,186 -32,0 -8,-186 -6,86 -28,-8 Z M-4,-392 q-96,10 -104,58 q52,-26 104,-14 q52,-12 104,14 q-8,-48 -104,-58 Z M-2,-392 l0,150 -18,0 0,-150 Z',
   };
 
   const flip = l.flip ? ` scale(-1,1)` : '';

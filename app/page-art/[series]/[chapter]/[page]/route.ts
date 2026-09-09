@@ -1,5 +1,5 @@
-import { NINE_TENTHS_CHAPTERS } from '@/content/nine-tenths';
-import { renderPage, type PageSpec } from '@/lib/studio/paint';
+import { ORIGINALS, getOriginal } from '@/lib/studio/library';
+import { renderPage } from '@/lib/studio/paint';
 
 /**
  * Originals are drawn on request rather than stored. The panels are a function
@@ -7,40 +7,17 @@ import { renderPage, type PageSpec } from '@/lib/studio/paint';
  * the CDN can hold it for a year.
  */
 
-const COVER: PageSpec = {
-  pal: 'void',
-  seed: 900,
-  panels: [
-    {
-      x: 0,
-      y: 0,
-      w: 1,
-      h: 1,
-      layers: [
-        { t: 'stars', n: 220, seed: 61 },
-        { t: 'disc', cx: 0.74, cy: 0.22, r: 0.17, fill: 'far' },
-        { t: 'wreck', seed: 77 },
-        { t: 'beam', x: 0.38, w: 0.22 },
-        { t: 'hull', y: 0.72 },
-        { t: 'figure', x: 0.38, scale: 1.5, pose: 'stand', fill: 'ink' },
-        { t: 'dust', n: 70, seed: 9 },
-      ],
-      caption: 'NINE TENTHS — a salvage story',
-      captionAt: 'bottom',
-    },
-  ],
-};
-
 export const dynamicParams = false;
 
 export function generateStaticParams() {
-  const out: { series: string; chapter: string; page: string }[] = [
-    { series: 'nine-tenths', chapter: 'cover', page: '1.svg' },
-  ];
-  for (const c of NINE_TENTHS_CHAPTERS) {
-    c.pages.forEach((_, i) => {
-      out.push({ series: 'nine-tenths', chapter: c.id, page: `${i + 1}.svg` });
-    });
+  const out: { series: string; chapter: string; page: string }[] = [];
+  for (const o of ORIGINALS) {
+    out.push({ series: o.slug, chapter: 'cover', page: '1.svg' });
+    for (const c of o.chapters) {
+      c.pages.forEach((_, i) => {
+        out.push({ series: o.slug, chapter: c.id, page: `${i + 1}.svg` });
+      });
+    }
   }
   return out;
 }
@@ -50,9 +27,8 @@ export async function GET(
   { params }: { params: Promise<{ series: string; chapter: string; page: string }> },
 ) {
   const { series, chapter, page } = await params;
-  if (series !== 'nine-tenths') {
-    return new Response('Unknown series', { status: 404 });
-  }
+  const original = getOriginal(series);
+  if (!original) return new Response('Unknown series', { status: 404 });
 
   const n = Number.parseInt(page.replace(/\.svg$/, ''), 10);
   if (!Number.isFinite(n) || n < 1) {
@@ -61,8 +37,8 @@ export async function GET(
 
   const spec =
     chapter === 'cover'
-      ? COVER
-      : NINE_TENTHS_CHAPTERS.find((c) => c.id === chapter)?.pages[n - 1];
+      ? original.cover
+      : original.chapters.find((c) => c.id === chapter)?.pages[n - 1];
 
   if (!spec) return new Response('No such page', { status: 404 });
 

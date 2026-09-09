@@ -1,6 +1,6 @@
 // Inkfold catalog layer.
 //
-import { NINE_TENTHS_CHAPTERS } from '@/content/nine-tenths';
+import { getOriginal } from '@/lib/studio/library';
 
 // Rule of the house: nothing enters this file without a license we can point at.
 // Every Series carries a `license` and a `source` that resolve to a real URL a
@@ -196,11 +196,12 @@ export function getHokusaiManga(): Series {
  * is no sourced artwork anywhere in it. We hold the copyright and we release it
  * under the same terms we ask of submissions.
  */
-export function getNineTenths(): Series {
-  const art = (chapter: string, page: number) =>
-    `/page-art/nine-tenths/${chapter}/${page}.svg`;
+function originalChapters(slug: string): Chapter[] {
+  const art = (chapter: string, page: number) => `/page-art/${slug}/${chapter}/${page}.svg`;
+  const source = getOriginal(slug);
+  if (!source) throw new Error(`No original registered for ${slug}`);
 
-  const chapters: Chapter[] = NINE_TENTHS_CHAPTERS.map((c) => ({
+  return source.chapters.map((c) => ({
     id: c.id,
     number: c.number,
     title: c.title,
@@ -208,6 +209,10 @@ export function getNineTenths(): Series {
     cover: art(c.id, 1),
     pages: c.pages.map((_, i) => art(c.id, i + 1)),
   }));
+}
+
+export function getNineTenths(): Series {
+  const chapters = originalChapters('nine-tenths');
 
   return {
     slug: 'nine-tenths',
@@ -229,9 +234,35 @@ export function getNineTenths(): Series {
   };
 }
 
+/**
+ * Second original. Same production line as Nine Tenths — prose script, layer
+ * stacks, seeded renderer — pointed at a city instead of a wreck, which is what
+ * the terrestrial half of the layer vocabulary was built for.
+ */
+export function getPaperStreets(): Series {
+  return {
+    slug: 'paper-streets',
+    title: 'Paper Streets',
+    author: 'Inkfold Studio',
+    authorNote:
+      'Built out of the same renderer as Nine Tenths with a street-level vocabulary added: skylines, rain, interiors, and a map layer that draws a plausible grid from a seed.',
+    year: '2026',
+    origin: 'Original',
+    kind: 'original',
+    license: LICENSES['cc-by-sa-4.0'],
+    sourceName: 'github.com/bryankwandou/inkfold',
+    sourceUrl: 'https://github.com/bryankwandou/inkfold/blob/main/content/paper-streets.ts',
+    synopsis:
+      'Surveyors have always planted streets that do not exist, a short invented row that proves who copied whose sheet. Kestrel Row went onto the city plate in 1961 and stayed. Nadia Reyes, a corrections clerk with a queue of two hundred and six, works out that somebody has been paying its water bill since 1994 — and that eleven addresses with no ground under them have been sold nineteen times.',
+    tags: ['Crime', 'Drama', 'Mature themes', 'Drawn in code'],
+    cover: '/page-art/paper-streets/cover/1.svg',
+    chapters: originalChapters('paper-streets'),
+  };
+}
+
 export async function getCatalog(lang = 'en'): Promise<Series[]> {
   const [pepper] = await Promise.all([getPepperCarrot(lang)]);
-  return [getNineTenths(), pepper, getHokusaiManga()];
+  return [getNineTenths(), getPaperStreets(), pepper, getHokusaiManga()];
 }
 
 export async function getSeries(

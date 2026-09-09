@@ -7,7 +7,7 @@
 // Salvage law, an archive nobody licensed, and the difference between owning a
 // thing and having made it.
 
-import type { Layer, PageSpec, PaletteName, Panel, Pose } from '@/lib/studio/paint';
+import type { Layer, PageSpec, PaletteName, Panel, Pose } from '../lib/studio/paint';
 
 type Body = Omit<Panel, 'x' | 'y' | 'w' | 'h'>;
 type Row = { h: number; cols: number[] };
