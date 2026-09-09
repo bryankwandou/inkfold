@@ -6,11 +6,42 @@
 // and text that escaped without being escaped.
 
 import { ORIGINALS } from '../lib/studio/library';
-import { renderPage, type PageSpec } from '../lib/studio/paint';
+import { PALETTES, renderPage, type PageSpec } from '../lib/studio/paint';
 
 type Problem = { where: string; what: string };
 
 const problems: Problem[] = [];
+
+/**
+ * Balloon and caption copy is `ink` set on `paper` and has to stay readable at
+ * phone size, so every palette owes a real contrast ratio there.
+ *
+ * There is no equivalent rule for `far` against `ink`. The obvious one — insist
+ * the ground a panel starts on differ in value from what silhouettes are drawn
+ * in — flags void, deep and frost, which are meant to be near-black throughout
+ * and read fine because those panels carry their own light: stars, a lit disc, a
+ * console. Value separation is what the daylight pages needed, not what every
+ * page needs, and a check that fires on working art would just get muted.
+ */
+function luminance(hex: string): number {
+  const n = Number.parseInt(hex.slice(1), 16);
+  const ch = [(n >> 16) & 255, (n >> 8) & 255, n & 255].map((v) => {
+    const s = v / 255;
+    return s <= 0.04045 ? s / 12.92 : ((s + 0.055) / 1.055) ** 2.4;
+  });
+  return 0.2126 * ch[0] + 0.7152 * ch[1] + 0.0722 * ch[2];
+}
+
+for (const [name, pal] of Object.entries(PALETTES)) {
+  const [hi, lo] = [luminance(pal.paper), luminance(pal.ink)].sort((a, b) => b - a);
+  const ratio = (hi + 0.05) / (lo + 0.05);
+  if (ratio < 12) {
+    problems.push({
+      where: `palette ${name}`,
+      what: `balloon copy contrast is ${ratio.toFixed(1)}:1`,
+    });
+  }
+}
 
 function check(where: string, svg: string) {
   const fail = (what: string) => problems.push({ where, what });

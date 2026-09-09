@@ -48,10 +48,15 @@ export const PALETTES: Record<PaletteName, Palette> = {
   bone: { far: '#1b1a17', near: '#33302a', ink: '#0b0a09', accent: '#c9a227', glow: '#e8d9a0', paper: '#f2ece0' },
   deep: { far: '#04060e', near: '#0a1020', ink: '#010208', accent: '#6c5ce7', glow: '#9bb7ff', paper: '#e6e8f2' },
   // Terrestrial set — added for Paper Streets, which happens at street level.
-  neon: { far: '#0d0714', near: '#241338', ink: '#050208', accent: '#ff3d7f', glow: '#63e7ff', paper: '#efe8f4' },
-  slate: { far: '#14171b', near: '#282e36', ink: '#07090b', accent: '#e05a3a', glow: '#9fb4c4', paper: '#eef1f4' },
-  moss: { far: '#101610', near: '#1f2c1e', ink: '#050805', accent: '#d0b24a', glow: '#8fc08a', paper: '#eef0e4' },
-  dusk: { far: '#1a1220', near: '#33203a', ink: '#0a0610', accent: '#ef7a4b', glow: '#ffc9a0', paper: '#f4e9e4' },
+  //
+  // `far` is the ground the panel starts on, usually sky, so it has to sit well
+  // clear of `ink` in value or the silhouettes have nothing to be silhouettes
+  // against. The first cut of moss and dusk had all three tones within a few
+  // percent of black and the daylight pages came out as empty rectangles.
+  neon: { far: '#150c22', near: '#2c1a44', ink: '#050208', accent: '#ff3d7f', glow: '#63e7ff', paper: '#efe8f4' },
+  slate: { far: '#161a1f', near: '#2b323b', ink: '#07090b', accent: '#e05a3a', glow: '#9fb4c4', paper: '#eef1f4' },
+  moss: { far: '#c2cdb4', near: '#5c6b51', ink: '#111710', accent: '#b4622c', glow: '#e8eddc', paper: '#f3f5ea' },
+  dusk: { far: '#7a4a55', near: '#3b2440', ink: '#0d0812', accent: '#f08a4b', glow: '#ffcda4', paper: '#f4e9e4' },
 };
 
 /* ── Layer vocabulary ─────────────────────────────────────────────── */
@@ -356,13 +361,25 @@ function paintLayer(l: Layer, p: Palette, w: number, h: number, seed: number): s
       // Two ranks: a hazier one behind, the solid one in front.
       for (const rank of [0, 1]) {
         const shade = rank === 0 ? p.near : p.ink;
+        // The back rank sits in haze. Letting the sky through it is what keeps a
+        // skyline from reading as one flat black mass.
+        const fade = rank === 0 ? ' opacity="0.5"' : '';
         const off = rank === 0 ? -h * 0.06 : 0;
         let x = -30;
         while (x < w + 30) {
-          const bw = (34 + rr() * 96) / density;
+          const bw = Math.max(26, (34 + rr() * 96) / density);
           const bh = (0.12 + rr() * 0.46) * h * (rank === 0 ? 0.8 : 1);
           const top = base + off - bh;
-          out += `<rect x="${x.toFixed(0)}" y="${top.toFixed(0)}" width="${bw.toFixed(0)}" height="${(bh + h).toFixed(0)}" fill="${shade}"/>`;
+          // Buildings stop at the street line rather than running off the bottom
+          // of the panel. Without that horizon a skyline reads as a row of bars.
+          out += `<rect x="${x.toFixed(0)}" y="${top.toFixed(0)}" width="${bw.toFixed(0)}" height="${(base - top + 2).toFixed(0)}" fill="${shade}"${fade}/>`;
+          // Roof furniture on the front rank: a stub or a mast, so the skyline
+          // has a profile instead of a flat cut.
+          if (rank === 1 && rr() > 0.55) {
+            const sw = bw * (0.2 + rr() * 0.3);
+            const sh = h * (0.01 + rr() * 0.035);
+            out += `<rect x="${(x + bw * 0.2).toFixed(0)}" y="${(top - sh).toFixed(0)}" width="${sw.toFixed(0)}" height="${sh.toFixed(0)}" fill="${shade}"/>`;
+          }
           if (rank === 1 && l.lit !== false) {
             for (let wy = top + 14; wy < base - 14; wy += 22) {
               for (let wx = x + 8; wx < x + bw - 10; wx += 16) {
@@ -376,6 +393,7 @@ function paintLayer(l: Layer, p: Palette, w: number, h: number, seed: number): s
           x += bw + 4;
         }
       }
+      out += `<rect y="${base.toFixed(0)}" width="${w}" height="${(h - base).toFixed(0)}" fill="${p.ink}"/>`;
       return out;
     }
 
@@ -463,15 +481,16 @@ function paintLayer(l: Layer, p: Palette, w: number, h: number, seed: number): s
       // Foreground table edge with paperwork. The clerk's whole world.
       const y = (l.y ?? 0.7) * h;
       const rr = rng(l.seed ?? seed + 13);
-      let out = '';
-      for (let i = 0; i < (l.clutter ?? 6); i++) {
-        const sw = w * (0.1 + rr() * 0.16);
-        const sx = w * 0.06 + rr() * (w * 0.8);
-        const sy = y - 6 - rr() * 26;
-        out += `<g transform="translate(${sx.toFixed(0)},${sy.toFixed(0)}) rotate(${(rr() * 16 - 8).toFixed(1)})"><rect width="${sw.toFixed(0)}" height="${(sw * 0.72).toFixed(0)}" y="${(-sw * 0.72).toFixed(0)}" fill="${p.paper}" opacity="0.9"/></g>`;
-      }
-      out += `<rect x="0" y="${y}" width="${w}" height="${h - y}" fill="${p.ink}"/>`;
+      // Slab first, then the paperwork on top of it. The other way round put the
+      // sheets behind whoever was sitting at the desk and sized them like doors.
+      let out = `<rect x="0" y="${y}" width="${w}" height="${h - y}" fill="${p.ink}"/>`;
       out += `<rect x="0" y="${y}" width="${w}" height="7" fill="${p.glow}" opacity="0.3"/>`;
+      for (let i = 0; i < (l.clutter ?? 6); i++) {
+        const sw = w * (0.06 + rr() * 0.07);
+        const sx = w * 0.04 + rr() * (w * 0.86);
+        const sy = y + 16 + rr() * (h - y) * 0.5;
+        out += `<g transform="translate(${sx.toFixed(0)},${sy.toFixed(0)}) rotate(${(rr() * 22 - 11).toFixed(1)})"><rect width="${sw.toFixed(0)}" height="${(sw * 0.74).toFixed(0)}" fill="${p.paper}" opacity="0.55" stroke="${p.paper}" stroke-opacity="0.3" stroke-width="1.5"/></g>`;
+      }
       return out;
     }
 
@@ -515,10 +534,26 @@ function paintLayer(l: Layer, p: Palette, w: number, h: number, seed: number): s
       for (let i = 0; i < (l.n ?? 10); i++) {
         const x = rr() * w;
         const th = h * (0.1 + rr() * 0.22);
-        const tw = th * (0.3 + rr() * 0.2);
-        out += `<path d="M${x} ${base} L${x - tw / 2} ${base - th * 0.42} L${x - tw * 0.3} ${base - th * 0.44} L${x - tw * 0.42} ${base - th * 0.76} L${x} ${base - th} L${x + tw * 0.42} ${base - th * 0.76} L${x + tw * 0.3} ${base - th * 0.44} L${x + tw / 2} ${base - th * 0.42} Z" fill="${p.ink}" opacity="0.95"/>`;
+        const tw = th * (0.42 + rr() * 0.26);
+        // Trunk, then a canopy of overlapping lobes. Drawn as a spike first,
+        // which read as an arrowhead rather than a tree.
+        const cy = base - th * 0.66;
+        out += `<rect x="${(x - tw * 0.06).toFixed(1)}" y="${(base - th * 0.6).toFixed(1)}" width="${(tw * 0.12).toFixed(1)}" height="${(th * 0.6).toFixed(1)}" fill="${p.ink}"/>`;
+        const lobes: [number, number, number][] = [
+          [x, cy - th * 0.14, tw * 0.34],
+          [x - tw * 0.3, cy + th * 0.04, tw * 0.28],
+          [x + tw * 0.3, cy + th * 0.02, tw * 0.27],
+          [x - tw * 0.12, cy + th * 0.18, tw * 0.26],
+          [x + tw * 0.16, cy + th * 0.2, tw * 0.24],
+        ];
+        for (const [lx, ly, lr] of lobes) {
+          out += `<circle cx="${lx.toFixed(1)}" cy="${ly.toFixed(1)}" r="${lr.toFixed(1)}" fill="${p.ink}"/>`;
+        }
       }
-      out += `<rect y="${base}" width="${w}" height="${h - base}" fill="${p.ink}"/>`;
+      // A band at the foot of the trunks, not a slab down to the panel edge.
+      // Filling to the bottom made this layer opaque to everything drawn under
+      // it — a road beneath a treeline simply vanished.
+      out += `<rect y="${base}" width="${w}" height="${(h - base) * 0.12 + 6}" fill="${p.ink}"/>`;
       return out;
     }
 
@@ -593,39 +628,91 @@ function paintFigure(l: Extract<Layer, { t: 'figure' }>, p: Palette, w: number, 
   const fill = l.fill === 'accent' ? p.accent : l.fill === 'paper' ? p.paper : p.ink;
   const pose = l.pose ?? 'stand';
 
-  const bodies: Record<Pose, string> = {
-    stand:
-      'M0,-330 a46,46 0 1,1 0.1,0 M-52,-262 q52,-30 104,0 l16,150 -30,8 -6,-92 -8,196 -32,0 -8,-196 -6,92 -30,-8 Z',
-    reach:
-      'M0,-330 a46,46 0 1,1 0.1,0 M-52,-262 q52,-30 104,0 l60,-70 22,20 -66,96 -8,146 -34,0 -6,-90 -10,90 -34,0 -6,-192 Z',
-    crouch:
-      'M-10,-236 a44,44 0 1,1 0.1,0 M-64,-176 q56,-34 112,-4 l14,86 -28,10 -10,-52 -4,124 -34,0 -14,-92 -30,74 -30,-12 Z',
-    suit:
-      'M0,-338 a56,52 0 1,1 0.1,0 M-64,-268 q64,-34 128,0 l18,168 -34,10 -8,-104 -10,214 -40,0 -10,-214 -8,104 -34,-10 Z',
-    seated:
-      'M6,-268 a44,44 0 1,1 0.1,0 M-46,-202 q52,-28 100,0 l12,104 82,10 0,34 -116,0 -6,-64 -8,64 -36,0 Z',
-    float:
-      'M0,-300 a46,46 0 1,1 0.1,0 M-52,-232 q52,-30 104,0 l58,50 -16,26 -62,-40 -10,120 -30,42 -26,-16 26,-58 -8,-88 -60,32 -14,-28 Z',
-    point:
-      'M0,-330 a46,46 0 1,1 0.1,0 M-52,-262 q52,-30 104,0 l92,26 -8,30 -100,-14 -8,140 -32,0 -6,-88 -10,88 -32,0 -6,-192 Z',
-    slump:
-      'M-14,-268 a44,44 0 1,1 0.1,0 M-62,-206 q54,-26 106,2 l10,120 -30,6 -8,-70 -6,150 -34,0 -10,-150 -8,70 -28,-6 Z',
-    walk:
-      'M0,-330 a46,46 0 1,1 0.1,0 M-52,-262 q52,-30 104,0 l14,144 -28,10 -8,-88 -2,86 46,102 -28,16 -46,-104 -40,96 -28,-14 44,-104 -6,-84 -8,90 -28,-10 Z',
-    run:
-      'M6,-322 a44,44 0 1,1 0.1,0 M-48,-256 q54,-30 104,2 l64,42 -16,28 -62,-32 -6,64 58,88 -28,20 -62,-92 -54,86 -28,-18 52,-86 -8,-70 -20,64 -28,-10 Z',
-    carry:
-      'M0,-330 a46,46 0 1,1 0.1,0 M-56,-262 q56,-30 112,0 l6,52 44,10 0,30 -50,-6 -6,158 -32,0 -6,-96 -8,96 -32,0 -6,-192 Z',
-    lean:
-      'M22,-322 a44,44 0 1,1 0.1,0 M-30,-256 q52,-28 100,0 l10,132 -28,8 -6,-84 -4,190 -34,0 -12,-188 -46,-2 0,-30 44,0 Z',
-    kneel:
-      'M-4,-244 a44,44 0 1,1 0.1,0 M-54,-182 q54,-28 106,0 l12,96 -28,8 -8,-56 0,90 66,4 0,32 -104,0 -8,-64 -34,58 -28,-16 Z',
-    umbrella:
-      'M0,-320 a44,44 0 1,1 0.1,0 M-50,-254 q50,-28 100,0 l12,140 -28,8 -6,-86 -6,186 -32,0 -8,-186 -6,86 -28,-8 Z M-4,-392 q-96,10 -104,58 q52,-26 104,-14 q52,-12 104,14 q-8,-48 -104,-58 Z M-2,-392 l0,150 -18,0 0,-150 Z',
+  // Head and body are separate primitives on purpose. They used to share one
+  // path, with the head drawn as a near-closed arc — and SVG resolved that arc
+  // to the circle above the start point rather than below it, so every figure
+  // in both books wore its head a full radius too high, floating clear of the
+  // shoulders. An explicit circle cannot be misread.
+  type Build = { head: [number, number, number]; body: string };
+
+  const builds: Record<Pose, Build> = {
+    stand: {
+      head: [0, -318, 46],
+      body: 'M-52,-262 q52,-30 104,0 l16,150 -30,8 -6,-92 -8,196 -32,0 -8,-196 -6,92 -30,-8 Z',
+    },
+    reach: {
+      head: [0, -318, 46],
+      body: 'M-52,-262 q52,-30 104,0 l60,-70 22,20 -66,96 -8,146 -34,0 -6,-90 -10,90 -34,0 -6,-192 Z',
+    },
+    crouch: {
+      head: [-10, -228, 44],
+      body: 'M-64,-176 q56,-34 112,-4 l14,86 -28,10 -10,-52 -4,124 -34,0 -14,-92 -30,74 -30,-12 Z',
+    },
+    suit: {
+      head: [0, -328, 54],
+      body: 'M-64,-268 q64,-34 128,0 l18,168 -34,10 -8,-104 -10,214 -40,0 -10,-214 -8,104 -34,-10 Z',
+    },
+    seated: {
+      head: [6, -256, 44],
+      body: 'M-46,-202 q52,-28 100,0 l12,104 82,10 0,34 -116,0 -6,-64 -8,64 -36,0 Z',
+    },
+    float: {
+      head: [0, -288, 46],
+      body: 'M-52,-232 q52,-30 104,0 l58,50 -16,26 -62,-40 -10,120 -30,42 -26,-16 26,-58 -8,-88 -60,32 -14,-28 Z',
+    },
+    point: {
+      head: [0, -318, 46],
+      body: 'M-52,-262 q52,-30 104,0 l92,26 -8,30 -100,-14 -8,140 -32,0 -6,-88 -10,88 -32,0 -6,-192 Z',
+    },
+    slump: {
+      head: [-14, -258, 44],
+      body: 'M-62,-206 q54,-26 106,2 l10,120 -30,6 -8,-70 -6,150 -34,0 -10,-150 -8,70 -28,-6 Z',
+    },
+    walk: {
+      head: [0, -318, 46],
+      body: 'M-52,-262 q52,-30 104,0 l14,144 -28,10 -8,-88 -2,86 46,102 -28,16 -46,-104 -40,96 -28,-14 44,-104 -6,-84 -8,90 -28,-10 Z',
+    },
+    run: {
+      head: [10, -310, 44],
+      body: 'M-48,-256 q54,-30 104,2 l64,42 -16,28 -62,-32 -6,64 58,88 -28,20 -62,-92 -54,86 -28,-18 52,-86 -8,-70 -20,64 -28,-10 Z',
+    },
+    carry: {
+      head: [0, -318, 46],
+      body: 'M-56,-262 q56,-30 112,0 l6,52 44,10 0,30 -50,-6 -6,158 -32,0 -6,-96 -8,96 -32,0 -6,-192 Z',
+    },
+    lean: {
+      head: [22, -312, 44],
+      body: 'M-30,-256 q52,-28 100,0 l10,132 -28,8 -6,-84 -4,190 -34,0 -12,-188 -46,-2 0,-30 44,0 Z',
+    },
+    kneel: {
+      head: [-4, -234, 44],
+      body: 'M-54,-182 q54,-28 106,0 l12,96 -28,8 -8,-56 0,90 66,4 0,32 -104,0 -8,-64 -34,58 -28,-16 Z',
+    },
+    umbrella: {
+      head: [0, -308, 44],
+      body:
+        'M-50,-254 q50,-28 100,0 l12,140 -28,8 -6,-86 -6,186 -32,0 -8,-186 -6,86 -28,-8 Z' +
+        ' M-4,-392 q-96,10 -104,58 q52,-26 104,-14 q52,-12 104,14 q-8,-48 -104,-58 Z' +
+        ' M-2,-392 l0,150 -18,0 0,-150 Z',
+    },
   };
 
+  const { head, body } = builds[pose];
   const flip = l.flip ? ` scale(-1,1)` : '';
-  return `<g transform="translate(${x.toFixed(0)},${y.toFixed(0)}) scale(${s.toFixed(3)})${flip}"><path d="${bodies[pose]}" fill="${fill}"/></g>`;
+
+  // A silhouette on a dark ground is only a silhouette if the ground is lighter.
+  // Half these panels are ink figures against ink buildings, so every figure
+  // carries a rim drawn behind its own fill.
+  const rim = l.fill === 'paper' ? p.ink : p.paper;
+  const shape =
+    `<circle cx="${head[0]}" cy="${head[1]}" r="${head[2]}"/><path d="${body}"/>`;
+
+  return (
+    `<g transform="translate(${x.toFixed(0)},${y.toFixed(0)}) scale(${s.toFixed(3)})${flip}">` +
+    `<g fill="none" stroke="${rim}" stroke-width="8" stroke-linejoin="round" opacity="0.26">${shape}</g>` +
+    `<g fill="${fill}">${shape}</g>` +
+    `</g>`
+  );
 }
 
 /* ── Balloons and captions ────────────────────────────────────────── */

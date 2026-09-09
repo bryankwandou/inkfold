@@ -273,11 +273,11 @@ const ch3: PageSpec[] = [
           'The east flats on a Tuesday morning: freight yard on one side, a terrace of shuttered workshops on the other, and between them a gap the width of a truck.',
       },
       {
-        layers: [CITY(0.62, 1.6, 25, false), F(0.34, 1.25, 'walk'), DUST(30, 6)],
+        layers: [CITY(0.62, 1.15, 25, false), F(0.34, 1.25, 'walk'), DUST(30, 6)],
         balloons: [think(0.66, 0.24, 'Aldis Street ends here. Two hundred feet of nothing, then the yard fence.', 0.62)],
       },
       {
-        layers: [CITY(0.58, 2, 27, false), BEAM(0.5, 0.26), F(0.48, 1.35, 'stand')],
+        layers: [CITY(0.58, 1.3, 27, false), BEAM(0.5, 0.26), F(0.48, 1.35, 'stand')],
         caption: 'Except the nothing had a kerb. A poured kerb, with a drain in it.',
         captionAt: 'bottom',
       },
@@ -291,9 +291,9 @@ const ch3: PageSpec[] = [
         layers: [ROAD(0.5, 4), DUST(20, 8)],
         caption: 'Fresh asphalt. Maybe four years old. Laid over something older.',
       },
-      { layers: [CITY(0.6, 2.4, 29, false), SIGN(0.5, 0.42, 'Kestrel Row')] },
+      { layers: [CITY(0.6, 1.5, 29, false), SIGN(0.5, 0.42, 'Kestrel Row')] },
       {
-        layers: [CITY(0.55, 2.2, 31, false), DOOR(0.62, false), F(0.3, 1.3, 'stand'), BEAM(0.62, 0.18)],
+        layers: [CITY(0.55, 1.4, 31, false), DOOR(0.62, false), F(0.3, 1.3, 'stand'), BEAM(0.62, 0.18)],
         balloons: [think(0.32, 0.2, 'The city has never paved this. There is no work order. There is no street.', 0.62)],
         caption:
           'A gate, a camera on a bracket, a mailbox with eleven slots and no names on any of them.',
@@ -301,7 +301,7 @@ const ch3: PageSpec[] = [
       },
       { layers: [SCREEN(0.5, 0.46, 0.5, 4, 13), WASH(0, 0.3, 'ink')] },
       {
-        layers: [CITY(0.6, 2, 33, false), F(0.5, 1.2, 'crouch')],
+        layers: [CITY(0.6, 1.3, 33, false), F(0.5, 1.2, 'crouch')],
         balloons: [say(0.5, 0.2, 'Help you?', 0.5, 0.42)],
       },
     ]),
@@ -311,14 +311,14 @@ const ch3: PageSpec[] = [
     seed: 43,
     panels: grid(RT, [
       {
-        layers: [CITY(0.56, 2.2, 35, false), F(0.28, 1.3, 'stand'), F(0.72, 1.4, 'stand', undefined, true), WASH(0, 0.35, 'ink')],
+        layers: [CITY(0.56, 1.4, 35, false), F(0.28, 1.3, 'stand'), F(0.72, 1.4, 'stand', undefined, true), WASH(0, 0.35, 'ink')],
         balloons: [
           say(0.3, 0.16, 'Bureau of Survey. I am closing an old correction ticket.', 0.4, 0.56),
           say(0.72, 0.44, 'Nothing here to correct. Private access road.', 0.5, 0.48),
         ],
       },
       {
-        layers: [CITY(0.5, 2.6, 37, false), DOOR(0.5, false), F(0.34, 1.25, 'point')],
+        layers: [CITY(0.5, 1.6, 37, false), DOOR(0.5, false), F(0.34, 1.25, 'point')],
         balloons: [
           say(0.62, 0.22, 'Private access roads have a parcel number. What is yours?', 0.42, 0.66),
         ],
@@ -634,16 +634,16 @@ const ch7: PageSpec[] = [
     seed: 81,
     panels: grid(RT, [
       {
-        layers: [CITY(0.6, 1.6, 51, false), RAIN(80, 0.24, 24), WASH(0, 0.55, 'ink'), F(0.28, 1.3, 'walk')],
+        layers: [CITY(0.6, 1.2, 51, false), RAIN(80, 0.24, 24), WASH(0, 0.55, 'ink'), F(0.28, 1.3, 'walk')],
         caption:
           'She went back at eleven at night, because a photograph of a kerb is worth more than a paragraph about a kerb, and she had run out of paragraphs.',
       },
       {
-        layers: [CITY(0.55, 2.2, 53, false), DOOR(0.56, true), BEAM(0.56, 0.22), F(0.28, 1.25, 'crouch')],
+        layers: [CITY(0.55, 1.4, 53, false), DOOR(0.56, true), BEAM(0.56, 0.22), F(0.28, 1.25, 'crouch')],
         balloons: [think(0.68, 0.22, 'The gate is open.', 0.46)],
       },
       {
-        layers: [ROAD(0.46, 4), CITY(0.44, 2.6, 55, false), F(0.5, 1.2, 'walk'), DUST(30, 14)],
+        layers: [ROAD(0.46, 4), CITY(0.44, 1.6, 55, false), F(0.5, 1.2, 'walk'), DUST(30, 14)],
         caption:
           'Behind it: a yard the size of the eleven lots, four containers, a portable office with a light on, and a van being loaded by people who did not look up.',
         captionAt: 'bottom',
@@ -654,15 +654,15 @@ const ch7: PageSpec[] = [
     pal: 'neon',
     seed: 82,
     panels: grid(R4, [
-      { layers: [CITY(0.5, 2.4, 57, false), DUST(20, 16)] },
+      { layers: [CITY(0.5, 1.5, 57, false), DUST(20, 16)] },
       { layers: [SCREEN(0.5, 0.46, 0.5, 5, 55)] },
       {
-        layers: [CITY(0.5, 2.2, 59, false), BEAM(0.4, 0.24), F(0.24, 1.2, 'crouch'), CROWD(6, 0.8, 18), WASH(0, 0.4, 'ink')],
+        layers: [CITY(0.5, 1.4, 59, false), BEAM(0.4, 0.24), F(0.24, 1.2, 'crouch'), CROWD(6, 0.8, 18), WASH(0, 0.4, 'ink')],
         caption:
           'An address that does not exist receives no inspections. No fire officer, no labour visit, no census. It is the only kind of place in a city where nobody is ever counted.',
       },
       {
-        layers: [CITY(0.55, 2, 61, false), F(0.5, 1.15, 'stand')],
+        layers: [CITY(0.55, 1.3, 61, false), F(0.5, 1.15, 'stand')],
         balloons: [say(0.5, 0.2, 'Hey.', 0.5, 0.3)],
       },
       {
@@ -761,10 +761,10 @@ const ch8: PageSpec[] = [
     seed: 93,
     panels: grid(RW, [
       { layers: [ROAD(0.46, 5), TREES(0.52, 6, 26)] },
-      { layers: [CITY(0.6, 2, 71, false), SIGN(0.5, 0.44, 'Kestrel Row')] },
+      { layers: [CITY(0.6, 1.3, 71, false), SIGN(0.5, 0.44, 'Kestrel Row')] },
       { layers: [MAP(85, [0.46, 0.48])] },
       {
-        layers: [CITY(0.56, 2.2, 73, false), F(0.32, 1.3, 'stand'), F(0.68, 1.2, 'stand', undefined, true), BEAM(0.5, 0.24)],
+        layers: [CITY(0.56, 1.4, 73, false), F(0.32, 1.3, 'stand'), F(0.68, 1.2, 'stand', undefined, true), BEAM(0.5, 0.24)],
         balloons: [
           say(0.34, 0.18, 'They will just find another gap in another sheet.', 0.4, 0.56),
           say(0.7, 0.48, 'They will. And someone will walk that one too.', 0.5, 0.48),
@@ -818,12 +818,14 @@ export const PAPER_STREETS_COVER: PageSpec = {
       w: 1,
       h: 1,
       layers: [
-        CITY(0.66, 1, 101),
+        CITY(0.7, 1, 101),
         RAIN(160, 0.28, 102),
-        WASH(0, 0.55, 'ink'),
-        SIGN(0.62, 0.3, 'Kestrel Row'),
-        BEAM(0.36, 0.2),
-        F(0.34, 1.55, 'umbrella'),
+        WASH(0, 0.5, 'ink'),
+        // The lamp stays off the figure. Put a widening beam behind someone and
+        // it comes through the gap between their legs as two lit wedges.
+        BEAM(0.76, 0.14),
+        SIGN(0.62, 0.22, 'Kestrel Row'),
+        F(0.27, 0.95, 'umbrella'),
         DUST(40, 103),
       ],
       caption: 'PAPER STREETS — eleven lots that were never there',
