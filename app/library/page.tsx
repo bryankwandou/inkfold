@@ -20,9 +20,11 @@ export default async function LibraryPage() {
           The library
         </h1>
         <p className="mt-5 text-[16px] leading-relaxed text-ink-300">
-          Two series today. We would rather grow this slowly and be able to
-          answer the licence question for every single entry than pad it out with
-          work we have no right to host.
+          Four titles: two we wrote and drew ourselves, one webcomic released
+          under CC BY, and a set of woodblock volumes whose copyright ran out in
+          the nineteenth century. We would rather grow this slowly and answer the
+          licence question for every single entry than pad it out with work we
+          have no right to host.
         </p>
       </header>
 

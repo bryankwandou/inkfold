@@ -5,6 +5,9 @@
 // got wrong before: unbalanced tags, unresolved references, NaN in coordinates,
 // and text that escaped without being escaped.
 
+import { readFileSync, readdirSync, statSync } from 'node:fs';
+import { join } from 'node:path';
+
 import { ORIGINALS } from '../lib/studio/library';
 import { PALETTES, renderPage, type PageSpec } from '../lib/studio/paint';
 
@@ -111,6 +114,42 @@ for (const original of ORIGINALS) {
   render(`${original.slug}/cover`, original.cover);
   for (const chapter of original.chapters) {
     chapter.pages.forEach((spec, i) => render(`${original.slug}/${chapter.id}/${i + 1}`, spec));
+  }
+}
+
+/**
+ * Hardcoded page-art URLs in the site itself.
+ *
+ * `dynamicParams` is false on the art route, so a path the generator never
+ * emitted is a 404 rather than a slow render — and a 404 in an <img> is an
+ * empty box on a page that otherwise builds, lints and typechecks clean. That
+ * is exactly how a promo image on the home page pointed at a chapter id the
+ * second series does not use.
+ */
+const servable = new Set<string>();
+for (const o of ORIGINALS) {
+  servable.add(`/page-art/${o.slug}/cover/1.svg`);
+  for (const c of o.chapters) {
+    c.pages.forEach((_, i) => servable.add(`/page-art/${o.slug}/${c.id}/${i + 1}.svg`));
+  }
+}
+
+function walk(dir: string): string[] {
+  return readdirSync(dir).flatMap((entry) => {
+    const path = join(dir, entry);
+    if (statSync(path).isDirectory()) return walk(path);
+    return /\.tsx?$/.test(entry) ? [path] : [];
+  });
+}
+
+for (const dir of ['app', 'components']) {
+  for (const file of walk(join(__dirname, '..', '..', dir))) {
+    const src = readFileSync(file, 'utf8');
+    for (const m of src.matchAll(/['"`](\/page-art\/[^'"`$]+)['"`]/g)) {
+      if (!servable.has(m[1])) {
+        problems.push({ where: file.split(/[\\/]/).slice(-3).join('/'), what: `links to ${m[1]}, which the art route never generates` });
+      }
+    }
   }
 }
 

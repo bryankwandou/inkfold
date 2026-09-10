@@ -812,3 +812,42 @@ export function renderPage(spec: PageSpec): string {
 
   return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${W} ${H}" width="${W}" height="${H}" role="img">${body}</svg>`;
 }
+
+/* ── Glossary ─────────────────────────────────────────────────────── */
+
+/**
+ * One line per layer, for the page that explains how this works to readers.
+ *
+ * Typed as a full record over `Layer['t']`, so adding a layer to the union
+ * without describing it here is a build error rather than a gap on the page.
+ */
+export const LAYER_NOTES: Record<Layer['t'], string> = {
+  stars: 'A seeded starfield. Same seed, same sky, on every request.',
+  disc: 'A planet, a moon, or a lamp — whichever the script needs a circle to be.',
+  hull: 'Ship plating in profile, with the panel lines running off the edge.',
+  wreck: 'A broken hull: spar, torn plate, and debris scattered by seed.',
+  corridor: 'One-point perspective down a passage, vanishing where told.',
+  window: 'A port cut through the near wall, round or square.',
+  ribs: 'Structural ribs receding, which is how a corridor gets its depth.',
+  console: 'A working surface with readouts, drawn as bars rather than glyphs.',
+  pod: 'A cold-storage capsule, lid glass, occupant implied.',
+  shelves: 'Racking. Used for drive archives and, at street level, files.',
+  figure: 'A person, from a pose name and a scale. Fourteen poses so far.',
+  wash: 'A vertical gradient over everything below it — light, smoke, or dread.',
+  dust: 'Motes. Cheap, and it stops flat fills from reading as flat.',
+  beam: 'A shaft of light with a soft edge, angled from a source off-panel.',
+  horizon: 'A single line that turns an empty field into a place.',
+  city: 'A skyline in three ranks, the back ones hazed, roofs cluttered in front.',
+  rain: 'Slanted strokes at a given density. It is a mood layer and it knows it.',
+  room: 'Interior walls and a floor line, with an optional window.',
+  door: 'A doorway, open or shut, which is usually the point of the panel.',
+  stairs: 'A flight in profile, run and rise from a step count.',
+  crowd: 'Repeated figures at falling scale, so a street reads as populated.',
+  desk: 'A desk slab with paperwork on top of it, cluttered to taste.',
+  road: 'Asphalt in perspective with lane markings that converge properly.',
+  sign: 'Lettering on a plate. The only text in the art that is not dialogue.',
+  trees: 'Trunks with lobed canopies and a band of ground at their feet.',
+  screen: 'A monitor with lines of text, drawn as rules of varying length.',
+  map: 'A plausible street grid from a seed, with an optional mark on it.',
+  blinds: 'Horizontal slats over whatever is behind them.',
+};

@@ -798,14 +798,14 @@ const ch8: PageSpec[] = [
 ];
 
 export const PAPER_STREETS_CHAPTERS: OriginalChapter[] = [
-  { id: 'ch1', number: 1, title: 'The Correction Queue', pages: ch1 },
-  { id: 'ch2', number: 2, title: 'Kestrel Row', pages: ch2 },
-  { id: 'ch3', number: 3, title: 'Field Check', pages: ch3 },
-  { id: 'ch4', number: 4, title: 'The Bill', pages: ch4 },
-  { id: 'ch5', number: 5, title: 'Whitmore', pages: ch5 },
-  { id: 'ch6', number: 6, title: 'The Ledger', pages: ch6 },
-  { id: 'ch7', number: 7, title: 'The Gate', pages: ch7 },
-  { id: 'ch8', number: 8, title: 'Filed', pages: ch8 },
+  { id: 'ch01', number: 1, title: 'The Correction Queue', pages: ch1 },
+  { id: 'ch02', number: 2, title: 'Kestrel Row', pages: ch2 },
+  { id: 'ch03', number: 3, title: 'Field Check', pages: ch3 },
+  { id: 'ch04', number: 4, title: 'The Bill', pages: ch4 },
+  { id: 'ch05', number: 5, title: 'Whitmore', pages: ch5 },
+  { id: 'ch06', number: 6, title: 'The Ledger', pages: ch6 },
+  { id: 'ch07', number: 7, title: 'The Gate', pages: ch7 },
+  { id: 'ch08', number: 8, title: 'Filed', pages: ch8 },
 ];
 
 export const PAPER_STREETS_COVER: PageSpec = {

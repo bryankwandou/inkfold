@@ -78,6 +78,12 @@ export default function RootLayout({
                 Library
               </Link>
               <Link
+                href="/studio"
+                className="hidden rounded-md px-3 py-2 transition-colors hover:bg-ink-800 hover:text-paper-50 sm:block"
+              >
+                Studio
+              </Link>
+              <Link
                 href="/licences"
                 className="rounded-md px-3 py-2 transition-colors hover:bg-ink-800 hover:text-paper-50"
               >
@@ -115,6 +121,16 @@ export default function RootLayout({
                   </Link>
                 </li>
                 <li>
+                  <Link href="/series/nine-tenths" className="hover:text-paper-50">
+                    Nine Tenths
+                  </Link>
+                </li>
+                <li>
+                  <Link href="/series/paper-streets" className="hover:text-paper-50">
+                    Paper Streets
+                  </Link>
+                </li>
+                <li>
                   <Link
                     href="/series/pepper-and-carrot"
                     className="hover:text-paper-50"
@@ -140,6 +156,11 @@ export default function RootLayout({
                 <li>
                   <Link href="/licences" className="hover:text-paper-50">
                     How titles get cleared
+                  </Link>
+                </li>
+                <li>
+                  <Link href="/studio" className="hover:text-paper-50">
+                    How the originals are drawn
                   </Link>
                 </li>
                 <li>

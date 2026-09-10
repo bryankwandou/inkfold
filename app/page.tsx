@@ -174,17 +174,19 @@ export default async function HomePage() {
               A shelf of borrowed work is still a borrowed shelf.
             </h2>
             <p className="mt-6 text-[16px] leading-relaxed text-ink-300">
-              So we write our own. <em>Nine Tenths</em> is eight chapters of
-              science fiction about salvage law, an archive nobody licensed, and
-              the gap between owning a thing and having made it. Thirty-two
-              pages, scripted as prose and then composed panel by panel in code.
+              So we write our own. <em>Nine Tenths</em> is science fiction about
+              salvage law, an archive nobody licensed, and the distance between
+              owning a thing and having made it. <em>Paper Streets</em> stays on
+              the ground: a corrections clerk works out that a street invented in
+              1961 to catch map thieves has been quietly billed, sold and
+              mortgaged ever since. Eight chapters and thirty-two pages each.
             </p>
             <p className="mt-4 text-[16px] leading-relaxed text-ink-300">
-              There is no sourced artwork in it. Every panel is a function of the
-              script and a fixed seed — starfields, hull silhouettes, balloons,
-              the lot — which is why it renders identically on every request and
-              why we can hand it back out under CC BY-SA without a single
-              clearance question.
+              Neither one contains a sourced image. Every panel is a function of
+              the script and a fixed seed — starfields, skylines, rain, balloons,
+              the lot — which is why a page renders identically on every request
+              and why we can hand our own work back out under CC BY-SA with no
+              clearance question anywhere in it.
             </p>
             <div className="mt-8 flex flex-wrap gap-3">
               <Link
@@ -193,25 +195,36 @@ export default async function HomePage() {
               >
                 Read Nine Tenths
               </Link>
-              <a
-                href="https://github.com/bryankwandou/inkfold/blob/main/lib/studio/paint.ts"
-                target="_blank"
-                rel="noreferrer noopener"
+              <Link
+                href="/series/paper-streets"
                 className="rounded-lg border border-ink-700 px-6 py-3.5 text-[15px] text-paper-100 transition-colors hover:border-ink-600 hover:bg-ink-900"
               >
-                Read the renderer
-              </a>
+                Read Paper Streets
+              </Link>
             </div>
+            <Link
+              href="/studio"
+              className="mt-5 inline-block text-[15px] text-seal-400 underline-offset-4 hover:underline"
+            >
+              See how one of these pages gets built
+            </Link>
           </div>
 
-          <div className="overflow-hidden rounded-xl ring-1 ring-ink-700">
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img
-              src="/page-art/nine-tenths/ch07/3.svg"
-              alt="A page from Nine Tenths, drawn in code"
-              loading="lazy"
-              className="w-full"
-            />
+          <div className="grid grid-cols-2 gap-4">
+            {[
+              ['/page-art/nine-tenths/ch07/3.svg', 'A page from Nine Tenths, drawn in code'],
+              ['/page-art/paper-streets/ch04/2.svg', 'A page from Paper Streets, drawn in code'],
+            ].map(([src, alt], i) => (
+              <div
+                key={src}
+                className={`overflow-hidden rounded-xl ring-1 ring-ink-700 ${
+                  i === 1 ? 'mt-10' : ''
+                }`}
+              >
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img src={src} alt={alt} loading="lazy" className="w-full" />
+              </div>
+            ))}
           </div>
         </div>
       </section>
