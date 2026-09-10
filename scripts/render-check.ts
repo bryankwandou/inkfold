@@ -76,6 +76,24 @@ function check(where: string, svg: string) {
   if (svg.length < 400) fail(`suspiciously small (${svg.length} bytes)`);
 }
 
+/**
+ * Page coverage. The grid helper in the scripts lays bodies into rows of
+ * columns and quietly skips a slot it has no body for, so a page that supplies
+ * three panels to a four-slot template loses the fourth silently — and what the
+ * reader gets is a dead rectangle of page background. Nothing about that is
+ * malformed, which is why it survived every other check here and had to be
+ * caught by looking at the art.
+ */
+function checkCoverage(where: string, spec: PageSpec) {
+  const area = spec.panels.reduce((sum, p) => sum + p.w * p.h, 0);
+  if (area < 0.97) {
+    problems.push({
+      where,
+      what: `panels cover ${(area * 100).toFixed(1)}% of the page — a slot is empty`,
+    });
+  }
+}
+
 let pages = 0;
 let bytes = 0;
 
@@ -85,6 +103,7 @@ for (const original of ORIGINALS) {
     pages++;
     bytes += svg.length;
     check(label, svg);
+    checkCoverage(label, spec);
     // Determinism: the same spec must produce the same bytes.
     if (renderPage(spec) !== svg) problems.push({ where: label, what: 'render is not deterministic' });
   };

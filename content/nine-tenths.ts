@@ -524,6 +524,12 @@ const ch6: PageSpec[] = [
           say(0.7, 0.66, 'I have a transmitter and a mortgage and a crew of three.', 0.5, 0.52),
         ],
       },
+      {
+        layers: [S(70, 31), HULL(0.86), WASH(0, 0.45, 'ink'), F(0.42, 1.15, 'stand', 'paper'), F(0.68, 1.1, 'stand', undefined, true)],
+        caption:
+          'Neither of us said the obvious part, which is that a mortgage is a filing window too, and somebody else holds the other end of it.',
+        captionAt: 'bottom',
+      },
     ]),
   },
   {
