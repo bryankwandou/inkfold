@@ -90,7 +90,14 @@ export type Layer =
   | { t: 'trees'; y?: number; n?: number; seed?: number }
   | { t: 'screen'; x?: number; y?: number; w?: number; lines?: number; seed?: number }
   | { t: 'map'; seed?: number; mark?: [number, number] }
-  | { t: 'blinds'; n?: number };
+  | { t: 'blinds'; n?: number }
+  /* Studio and stage. Added for Second Voice, which happens around a microphone. */
+  | { t: 'booth'; y?: number; glass?: boolean; seed?: number }
+  | { t: 'wave'; y?: number; amp?: number; n?: number; seed?: number; flat?: boolean }
+  | { t: 'reel'; n?: number; y?: number; spin?: number }
+  | { t: 'stage'; curtain?: boolean; y?: number }
+  | { t: 'mic'; x?: number; y?: number; scale?: number }
+  | { t: 'tower'; x?: number; h?: number; lit?: boolean };
 
 export type Pose =
   | 'stand'
@@ -611,6 +618,148 @@ function paintLayer(l: Layer, p: Palette, w: number, h: number, seed: number): s
       return out;
     }
 
+    case 'booth': {
+      // A recording booth from inside the control room: foam wall, a glass
+      // panel with the talent behind it, and a boom arm coming in from the top.
+      const rr = rng(l.seed ?? seed + 31);
+      const gy = (l.y ?? 0.3) * h;
+      let out = `<rect width="${w}" height="${h}" fill="${p.near}"/>`;
+      // Acoustic wedges, tiled.
+      const cell = Math.max(26, w / 14);
+      for (let x = 0; x < w; x += cell) {
+        for (let y = 0; y < h; y += cell) {
+          out += `<path d="M${x} ${y + cell} L${x + cell / 2} ${y} L${x + cell} ${y + cell} Z" fill="${p.ink}" opacity="${(0.2 + rr() * 0.28).toFixed(2)}"/>`;
+        }
+      }
+      if (l.glass !== false) {
+        const gx = w * 0.12;
+        const gw = w * 0.76;
+        const gh = h * 0.46;
+        out += `<rect x="${gx.toFixed(0)}" y="${gy.toFixed(0)}" width="${gw.toFixed(0)}" height="${gh.toFixed(0)}" fill="${p.far}"/>`;
+        out += `<rect x="${gx.toFixed(0)}" y="${gy.toFixed(0)}" width="${gw.toFixed(0)}" height="${gh.toFixed(0)}" fill="${p.glow}" opacity="0.1"/>`;
+        // A floor line and a stand inside, so the glass reads as a room rather
+        // than a hole cut in the wall.
+        const fy = gy + gh * 0.74;
+        out += `<rect x="${gx.toFixed(0)}" y="${fy.toFixed(0)}" width="${gw.toFixed(0)}" height="${(gy + gh - fy).toFixed(0)}" fill="${p.ink}" opacity="0.55"/>`;
+        out += `<line x1="${(gx + gw * 0.72).toFixed(0)}" y1="${fy.toFixed(0)}" x2="${(gx + gw * 0.72).toFixed(0)}" y2="${(gy + gh * 0.3).toFixed(0)}" stroke="${p.ink}" stroke-width="5"/>`;
+        // The reflection streak that says "there is glass here".
+        out += `<path d="M${gx + gw * 0.08} ${gy + gh} L${gx + gw * 0.42} ${gy} L${gx + gw * 0.56} ${gy} L${gx + gw * 0.22} ${gy + gh} Z" fill="${p.paper}" opacity="0.07"/>`;
+        out += `<rect x="${gx.toFixed(0)}" y="${gy.toFixed(0)}" width="${gw.toFixed(0)}" height="${gh.toFixed(0)}" fill="none" stroke="${p.ink}" stroke-width="7"/>`;
+      }
+      return out;
+    }
+
+    case 'wave': {
+      // An audio waveform, mirrored about its own centre line. `flat` kills the
+      // amplitude, which is the panel where the take has stopped.
+      const rr = rng(l.seed ?? seed + 37);
+      const cy = (l.y ?? 0.5) * h;
+      const n = l.n ?? 64;
+      const amp = (l.flat ? 0.01 : (l.amp ?? 0.18)) * h;
+      const step = w / n;
+      let out = `<line x1="0" y1="${cy}" x2="${w}" y2="${cy}" stroke="${p.glow}" stroke-width="2" opacity="0.5"/>`;
+      for (let i = 0; i < n; i++) {
+        const env = Math.sin((i / n) * Math.PI);
+        const a = amp * (0.25 + rr() * 0.75) * (0.35 + env * 0.8);
+        out += `<rect x="${(i * step + step * 0.2).toFixed(1)}" y="${(cy - a).toFixed(1)}" width="${(step * 0.6).toFixed(1)}" height="${(a * 2).toFixed(1)}" rx="${(step * 0.3).toFixed(1)}" fill="${p.glow}" opacity="${(0.55 + rr() * 0.4).toFixed(2)}"/>`;
+      }
+      return out;
+    }
+
+    case 'reel': {
+      // Tape reels on a deck. Two by default, sitting on a slab.
+      const n = l.n ?? 2;
+      const cy = (l.y ?? 0.46) * h;
+      const rad = Math.min(h * 0.2, w / (n * 2.6));
+      let out = `<rect y="${(cy + rad * 1.25).toFixed(0)}" width="${w}" height="${(h - cy - rad * 1.25).toFixed(0)}" fill="${p.ink}"/>`;
+      const gap = w / (n + 1);
+      const centres: number[] = [];
+      for (let i = 0; i < n; i++) centres.push(gap * (i + 1));
+      for (const cx of centres) {
+        out += `<circle cx="${cx.toFixed(0)}" cy="${cy.toFixed(0)}" r="${rad.toFixed(0)}" fill="${p.ink}"/>`;
+        out += `<circle cx="${cx.toFixed(0)}" cy="${cy.toFixed(0)}" r="${(rad * 0.82).toFixed(0)}" fill="${p.near}"/>`;
+        // Three spokes, rotated by `spin` so consecutive panels read as motion.
+        for (let k = 0; k < 3; k++) {
+          const a = (k / 3) * Math.PI * 2 + (l.spin ?? 0);
+          out += `<line x1="${(cx + Math.cos(a) * rad * 0.2).toFixed(1)}" y1="${(cy + Math.sin(a) * rad * 0.2).toFixed(1)}" x2="${(cx + Math.cos(a) * rad * 0.72).toFixed(1)}" y2="${(cy + Math.sin(a) * rad * 0.72).toFixed(1)}" stroke="${p.ink}" stroke-width="${(rad * 0.16).toFixed(1)}"/>`;
+        }
+        out += `<circle cx="${cx.toFixed(0)}" cy="${cy.toFixed(0)}" r="${(rad * 0.16).toFixed(0)}" fill="${p.accent}"/>`;
+      }
+      // The tape between them.
+      if (centres.length > 1) {
+        out += `<path d="M${centres[0]} ${cy - rad} Q${w / 2} ${cy - rad * 1.7} ${centres[centres.length - 1]} ${cy - rad}" fill="none" stroke="${p.ink}" stroke-width="4"/>`;
+      }
+      return out;
+    }
+
+    case 'stage': {
+      // A theatre stage seen from the house: boards, footlights, and drapes.
+      const y = (l.y ?? 0.62) * h;
+      let out = `<rect width="${w}" height="${h}" fill="${p.far}"/>`;
+      out += `<rect y="${y.toFixed(0)}" width="${w}" height="${(h - y).toFixed(0)}" fill="${p.ink}"/>`;
+      for (let i = 0; i < 9; i++) {
+        const fx = (w / 9) * (i + 0.5);
+        out += `<ellipse cx="${fx.toFixed(0)}" cy="${y.toFixed(0)}" rx="${(w * 0.03).toFixed(0)}" ry="${(h * 0.012).toFixed(0)}" fill="${p.glow}" opacity="0.8"/>`;
+        out += `<path d="M${fx - w * 0.05} ${y} L${fx + w * 0.05} ${y} L${fx + w * 0.13} ${y - h * 0.3} L${fx - w * 0.13} ${y - h * 0.3} Z" fill="${p.glow}" opacity="0.07"/>`;
+      }
+      if (l.curtain !== false) {
+        for (const side of [0, 1]) {
+          const base = side === 0 ? 0 : w;
+          const dir = side === 0 ? 1 : -1;
+          for (let i = 0; i < 4; i++) {
+            const x = base + dir * (i * w * 0.045);
+            out += `<path d="M${x} 0 Q${x + dir * w * 0.03} ${y * 0.5} ${x} ${y} L${x + dir * w * 0.05} ${y} Q${x + dir * w * 0.075} ${y * 0.5} ${x + dir * w * 0.05} 0 Z" fill="${p.ink}" opacity="${(0.95 - i * 0.12).toFixed(2)}"/>`;
+          }
+        }
+      }
+      return out;
+    }
+
+    case 'mic': {
+      // A studio mic in close-up: capsule basket, shock mount, boom.
+      const cx = (l.x ?? 0.5) * w;
+      const cy = (l.y ?? 0.46) * h;
+      const s = (l.scale ?? 1) * Math.min(w, h) * 0.3;
+      let out = '';
+      out += `<line x1="${cx.toFixed(0)}" y1="${(cy - s * 1.4).toFixed(0)}" x2="${cx.toFixed(0)}" y2="${(cy - s * 0.62).toFixed(0)}" stroke="${p.ink}" stroke-width="${(s * 0.09).toFixed(1)}"/>`;
+      out += `<ellipse cx="${cx.toFixed(0)}" cy="${cy.toFixed(0)}" rx="${(s * 0.62).toFixed(0)}" ry="${(s * 0.7).toFixed(0)}" fill="none" stroke="${p.ink}" stroke-width="${(s * 0.07).toFixed(1)}"/>`;
+      out += `<rect x="${(cx - s * 0.34).toFixed(0)}" y="${(cy - s * 0.5).toFixed(0)}" width="${(s * 0.68).toFixed(0)}" height="${(s * 1.0).toFixed(0)}" rx="${(s * 0.32).toFixed(0)}" fill="${p.ink}"/>`;
+      // Grille lines across the basket.
+      for (let i = 1; i < 7; i++) {
+        const gy = cy - s * 0.5 + (i * s) / 7;
+        out += `<line x1="${(cx - s * 0.3).toFixed(0)}" y1="${gy.toFixed(1)}" x2="${(cx + s * 0.3).toFixed(0)}" y2="${gy.toFixed(1)}" stroke="${p.glow}" stroke-width="${(s * 0.03).toFixed(1)}" opacity="0.35"/>`;
+      }
+      out += `<rect x="${(cx - s * 0.12).toFixed(0)}" y="${(cy + s * 0.5).toFixed(0)}" width="${(s * 0.24).toFixed(0)}" height="${(s * 0.5).toFixed(0)}" fill="${p.ink}"/>`;
+      out += `<circle cx="${(cx + s * 0.5).toFixed(0)}" cy="${(cy - s * 0.36).toFixed(0)}" r="${(s * 0.09).toFixed(0)}" fill="${p.accent}"/>`;
+      return out;
+    }
+
+    case 'tower': {
+      // A broadcast mast: tapering lattice with a lamp on top.
+      const cx = (l.x ?? 0.5) * w;
+      const top = (1 - (l.h ?? 0.72)) * h;
+      const base = h;
+      const half = w * 0.09;
+      let out = `<path d="M${cx - half} ${base} L${cx - half * 0.13} ${top} L${cx + half * 0.13} ${top} L${cx + half} ${base} Z" fill="none" stroke="${p.ink}" stroke-width="5"/>`;
+      const steps = 12;
+      for (let i = 0; i < steps; i++) {
+        const t0 = i / steps;
+        const t1 = (i + 1) / steps;
+        const y0 = base + (top - base) * t0;
+        const y1 = base + (top - base) * t1;
+        const hw0 = half * (1 - t0 * 0.87);
+        const hw1 = half * (1 - t1 * 0.87);
+        out += `<line x1="${(cx - hw0).toFixed(1)}" y1="${y0.toFixed(1)}" x2="${(cx + hw1).toFixed(1)}" y2="${y1.toFixed(1)}" stroke="${p.ink}" stroke-width="3"/>`;
+        out += `<line x1="${(cx + hw0).toFixed(1)}" y1="${y0.toFixed(1)}" x2="${(cx - hw1).toFixed(1)}" y2="${y1.toFixed(1)}" stroke="${p.ink}" stroke-width="3"/>`;
+        out += `<line x1="${(cx - hw1).toFixed(1)}" y1="${y1.toFixed(1)}" x2="${(cx + hw1).toFixed(1)}" y2="${y1.toFixed(1)}" stroke="${p.ink}" stroke-width="3"/>`;
+      }
+      if (l.lit !== false) {
+        out += `<circle cx="${cx.toFixed(0)}" cy="${top.toFixed(0)}" r="${(w * 0.022).toFixed(0)}" fill="${p.accent}"/>`;
+        out += `<circle cx="${cx.toFixed(0)}" cy="${top.toFixed(0)}" r="${(w * 0.06).toFixed(0)}" fill="${p.accent}" opacity="0.18"/>`;
+      }
+      return out;
+    }
+
     case 'figure':
       return paintFigure(l, p, w, h);
   }
@@ -850,4 +999,10 @@ export const LAYER_NOTES: Record<Layer['t'], string> = {
   screen: 'A monitor with lines of text, drawn as rules of varying length.',
   map: 'A plausible street grid from a seed, with an optional mark on it.',
   blinds: 'Horizontal slats over whatever is behind them.',
+  booth: 'A recording booth from the control room: foam, glass, and a boom arm.',
+  wave: 'A waveform. Flatten it and the panel is a take that has stopped.',
+  reel: 'Tape reels on a deck, spokes rotated so consecutive panels read as motion.',
+  stage: 'A stage from the house — boards, footlights, and drapes down both sides.',
+  mic: 'A studio microphone in close-up, basket and shock mount included.',
+  tower: 'A broadcast mast, lattice tapering to a lamp.',
 };

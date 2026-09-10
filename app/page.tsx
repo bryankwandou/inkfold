@@ -179,14 +179,17 @@ export default async function HomePage() {
               owning a thing and having made it. <em>Paper Streets</em> stays on
               the ground: a corrections clerk works out that a street invented in
               1961 to catch map thieves has been quietly billed, sold and
-              mortgaged ever since. Eight chapters and thirty-two pages each.
+              mortgaged ever since. <em>Second Voice</em> follows a dub artist
+              who signs a one-page consent form in a doorway and later hears her
+              own breath in an advertisement she never recorded. Eight chapters
+              and thirty-two pages each.
             </p>
             <p className="mt-4 text-[16px] leading-relaxed text-ink-300">
-              Neither one contains a sourced image. Every panel is a function of
-              the script and a fixed seed — starfields, skylines, rain, balloons,
-              the lot — which is why a page renders identically on every request
-              and why we can hand our own work back out under CC BY-SA with no
-              clearance question anywhere in it.
+              None of the three contains a sourced image. Every panel is a
+              function of the script and a fixed seed — starfields, skylines,
+              rain, waveforms, balloons, the lot — which is why a page renders
+              identically on every request and why we can hand our own work back
+              out under CC BY-SA with no clearance question anywhere in it.
             </p>
             <div className="mt-8 flex flex-wrap gap-3">
               <Link
@@ -210,15 +213,16 @@ export default async function HomePage() {
             </Link>
           </div>
 
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-3 gap-3">
             {[
               ['/page-art/nine-tenths/ch07/3.svg', 'A page from Nine Tenths, drawn in code'],
               ['/page-art/paper-streets/ch04/2.svg', 'A page from Paper Streets, drawn in code'],
+              ['/page-art/second-voice/ch03/2.svg', 'A page from Second Voice, drawn in code'],
             ].map(([src, alt], i) => (
               <div
                 key={src}
                 className={`overflow-hidden rounded-xl ring-1 ring-ink-700 ${
-                  i === 1 ? 'mt-10' : ''
+                  i === 1 ? 'mt-8' : i === 2 ? 'mt-16' : ''
                 }`}
               >
                 {/* eslint-disable-next-line @next/next/no-img-element */}

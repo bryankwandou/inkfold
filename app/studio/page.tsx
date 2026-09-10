@@ -70,10 +70,10 @@ export default function StudioPage() {
           Nobody drew these pages.
         </h1>
         <p className="mt-6 text-[17px] leading-relaxed text-ink-300">
-          Both originals on this shelf were written as prose, broken into panels,
-          and then described to a renderer as a stack of named layers. There is
-          no sourced artwork in either of them and nothing was traced. A page is
-          a function of its description and a fixed seed, which is the whole
+          All three originals on this shelf were written as prose, broken into
+          panels, and then described to a renderer as a stack of named layers.
+          There is no sourced artwork in any of them and nothing was traced. A
+          page is a function of its description and a fixed seed, which is the
           reason we can hand our own work back out under CC BY-SA without a
           clearance question anywhere in the chain.
         </p>
@@ -168,8 +168,9 @@ export default function StudioPage() {
         <p className="mt-4 max-w-2xl text-[16px] leading-relaxed text-ink-300">
           {vocabulary.length} layers, and a page is some ordering of them. The
           list grew the way a prop cupboard does: <em>Nine Tenths</em> wanted a
-          wreck and a cold-storage pod, then <em>Paper Streets</em> turned up
-          asking for rain, a skyline and a filing desk.
+          wreck and a cold-storage pod, <em>Paper Streets</em> turned up asking
+          for rain, a skyline and a filing desk, and <em>Second Voice</em> could
+          not be drawn at all until there was a microphone.
         </p>
 
         <div className="mt-10 grid gap-x-10 gap-y-6 sm:grid-cols-2 lg:grid-cols-3">
@@ -293,6 +294,12 @@ export default function StudioPage() {
             className="rounded-lg border border-ink-700 px-6 py-3.5 text-[15px] text-paper-100 transition-colors hover:border-ink-600 hover:bg-ink-900"
           >
             Paper Streets
+          </Link>
+          <Link
+            href="/series/second-voice"
+            className="rounded-lg border border-ink-700 px-6 py-3.5 text-[15px] text-paper-100 transition-colors hover:border-ink-600 hover:bg-ink-900"
+          >
+            Second Voice
           </Link>
           <a
             href="https://github.com/bryankwandou/inkfold/blob/main/lib/studio/paint.ts"

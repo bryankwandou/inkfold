@@ -20,7 +20,7 @@ export default async function LibraryPage() {
           The library
         </h1>
         <p className="mt-5 text-[16px] leading-relaxed text-ink-300">
-          Four titles: two we wrote and drew ourselves, one webcomic released
+          Five titles: three we wrote and drew ourselves, one webcomic released
           under CC BY, and a set of woodblock volumes whose copyright ran out in
           the nineteenth century. We would rather grow this slowly and answer the
           licence question for every single entry than pad it out with work we

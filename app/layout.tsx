@@ -131,6 +131,11 @@ export default function RootLayout({
                   </Link>
                 </li>
                 <li>
+                  <Link href="/series/second-voice" className="hover:text-paper-50">
+                    Second Voice
+                  </Link>
+                </li>
+                <li>
                   <Link
                     href="/series/pepper-and-carrot"
                     className="hover:text-paper-50"

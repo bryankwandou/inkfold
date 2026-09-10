@@ -12,5 +12,5 @@
     "paths": { "@/*": ["./*"] },
     "esModuleInterop": true
   },
-  "include": ["render-check.ts", "../lib/studio/**/*.ts", "../content/**/*.ts"]
+  "include": ["render-check.ts", "layer-preview.ts", "dump-art.ts", "../lib/studio/**/*.ts", "../content/**/*.ts"]
 }

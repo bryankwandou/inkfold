@@ -260,9 +260,41 @@ export function getPaperStreets(): Series {
   };
 }
 
+/**
+ * Third original. The layer vocabulary grew a studio wing for this one —
+ * booths, waveforms, tape reels, a stage — because the story lives around a
+ * microphone and none of the existing props could stand in for one.
+ */
+export function getSecondVoice(): Series {
+  return {
+    slug: 'second-voice',
+    title: 'Second Voice',
+    author: 'Inkfold Studio',
+    authorNote:
+      'Drawn with the same renderer as the other two originals, extended with the props a recording studio needs: acoustic foam, a glass panel, reels that turn a little further in each panel.',
+    year: '2026',
+    origin: 'Original',
+    kind: 'original',
+    license: LICENSES['cc-by-sa-4.0'],
+    sourceName: 'github.com/bryankwandou/inkfold',
+    sourceUrl: 'https://github.com/bryankwandou/inkfold/blob/main/content/second-voice.ts',
+    synopsis:
+      'Sari Halim has dubbed other people’s films for nineteen years. She signs a one-page consent form in a doorway so a session fee will clear on Friday, and eleven months later hears her own breath in a bank advertisement she never recorded. Her signature will probably hold up. The question nobody in the chain thought to ask is whether the studio ever owned what it sold — and the answer is in four hundred and six paper contracts in a storage unit.',
+    tags: ['Drama', 'Contemporary', 'Mature themes', 'Drawn in code'],
+    cover: '/page-art/second-voice/cover/1.svg',
+    chapters: originalChapters('second-voice'),
+  };
+}
+
 export async function getCatalog(lang = 'en'): Promise<Series[]> {
   const [pepper] = await Promise.all([getPepperCarrot(lang)]);
-  return [getNineTenths(), getPaperStreets(), pepper, getHokusaiManga()];
+  return [
+    getNineTenths(),
+    getPaperStreets(),
+    getSecondVoice(),
+    pepper,
+    getHokusaiManga(),
+  ];
 }
 
 export async function getSeries(

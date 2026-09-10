@@ -5,6 +5,7 @@
 
 import { NINE_TENTHS_CHAPTERS, type OriginalChapter } from '../../content/nine-tenths';
 import { PAPER_STREETS_CHAPTERS, PAPER_STREETS_COVER } from '../../content/paper-streets';
+import { SECOND_VOICE_CHAPTERS, SECOND_VOICE_COVER } from '../../content/second-voice';
 import type { PageSpec } from './paint';
 
 const NINE_TENTHS_COVER: PageSpec = {
@@ -40,6 +41,7 @@ export type Original = {
 export const ORIGINALS: Original[] = [
   { slug: 'nine-tenths', cover: NINE_TENTHS_COVER, chapters: NINE_TENTHS_CHAPTERS },
   { slug: 'paper-streets', cover: PAPER_STREETS_COVER, chapters: PAPER_STREETS_CHAPTERS },
+  { slug: 'second-voice', cover: SECOND_VOICE_COVER, chapters: SECOND_VOICE_CHAPTERS },
 ];
 
 export function getOriginal(slug: string): Original | undefined {
